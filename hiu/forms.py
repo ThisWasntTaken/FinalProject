@@ -2,7 +2,7 @@ from flask_wtf import FlaskForm
 from wtforms import IntegerField, StringField, PasswordField, SubmitField, BooleanField, RadioField, SelectField
 from wtforms.fields.html5 import DateField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError
-from hiu.models import User, Patient, PurposeType, UserType
+from hiu.models import User, Patient, Consent, PurposeType, UserType
 
 USER_TYPE = ["Doctor", "Nurse", "Receptionist", "Pharmacist"]
 PURPOSE = ["Diagnosis", "Prescription"]
@@ -45,7 +45,7 @@ class LoginForm(FlaskForm):
             raise ValidationError('A user with that email does not exist!')
 
 class ConsentForm(FlaskForm):
-    health_id = IntegerField('Health ID', validators = [DataRequired()])
+    health_id = StringField('Health ID', validators = [DataRequired()])
     hip_id = IntegerField('HIP ID', validators = [DataRequired()])
     record_id = IntegerField('Record ID', validators = [DataRequired()])
     purpose = SelectField('Purpose', choices = [(i, i) for i in PURPOSE], validators = [DataRequired()])
@@ -61,3 +61,15 @@ class ConsentForm(FlaskForm):
     def validate_time_to(self, time_to):
         if self.time_from.data > time_to.data:
             raise ValidationError('Enter valid dates.')
+
+class DataRequestForm(FlaskForm):
+    health_id = StringField('Health ID', validators = [DataRequired()])
+    hip_id = IntegerField('HIP ID', validators = [DataRequired()])
+    record_id = IntegerField('Record ID', validators = [DataRequired()])
+    consent_id = SelectField('Consent', validators = [DataRequired()])
+    submit = SubmitField('Submit Consent Request')
+
+    def validate_health_id(self, health_id):
+        patient = Patient.query.filter_by(health_id = health_id.data).first()
+        if not patient:
+            raise ValidationError('A patient with that Health ID does not exist!')

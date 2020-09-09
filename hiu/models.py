@@ -26,11 +26,11 @@ class User(db.Model, UserMixin):
     password = db.Column(db.String(60), nullable = False)
 
     def __repr__(self):
-        return f"User({self.first_name}, {self.last_name}, {self.email}, {self.user_type})"
+        return f"User({self.name}, {self.email}, {self.user_type})"
 
 class Patient(db.Model):
     id = db.Column(db.Integer, primary_key = True)
-    health_id = db.Column(db.Integer, nullable = True, unique = True)
+    health_id = db.Column(db.String(20), nullable = True, unique = True)
     name = db.Column(db.String(40), nullable = False)
     email = db.Column(db.String(120), unique = True, nullable = False)
 
@@ -41,6 +41,7 @@ class Consent(db.Model):
     id = db.Column(db.Integer, primary_key = True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable = False)
     patient_id = db.Column(db.Integer, db.ForeignKey('patient.id'), nullable = False)
+    hip_id = db.Column(db.Integer, nullable = False)
     record_id = db.Column(db.Integer, nullable = False)
     purpose = db.Column(db.Enum(PurposeType), nullable = False)
     time_from = db.Column(db.DateTime, nullable = False)
@@ -48,4 +49,9 @@ class Consent(db.Model):
     accept = db.Column(db.Boolean, default = False, nullable = False)
 
     def __repr__(self):
-        return f"Consent({self.patient_id}, {self.record_id}, {self.accept})"
+        return f"Consent({self.id}, {self.patient_id}, {self.record_id}, {self.accept})"
+
+    def __str__(self):
+        return f"Record {self.record_id} of HIP {self.hip_id} for {self.purpose} from {self.time_from.strftime('%Y-%m-%d')} to {self.time_to.strftime('%Y-%m-%d')}"
+
+# db.create_all()

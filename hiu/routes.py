@@ -1,6 +1,6 @@
 from flask import render_template, url_for, flash, redirect, request, make_response, jsonify
 from hiu.models import User, Patient, Consent, UserType, PurposeType
-from hiu.forms import RegistrationForm, LoginForm, ConsentForm
+from hiu.forms import RegistrationForm, LoginForm, ConsentForm, DataRequestForm
 from hiu import app, db, bcrypt
 from flask_login import login_user, current_user, logout_user, login_required
 import requests
@@ -36,7 +36,6 @@ def register():
     form = RegistrationForm()
     if request.method == 'POST' and form.validate_on_submit():
         password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
-        print(form.user_type.data)
         user = User(digi_doctor_id = form.digi_doctor_id.data, name = form.name.data, email = form.email.data, phone = form.phone.data, user_type = USER_TYPE_MAP[form.user_type.data], password = password)
         db.session.add(user)
         db.session.commit()
@@ -45,7 +44,7 @@ def register():
     else:
         return render_template('register.html', title = 'Register', form = form)
 
-@app.route('/consent', methods = ['GET', 'POST'])
+@app.route('/consent_request', methods = ['GET', 'POST'])
 @login_required
 def consent_request():
     form = ConsentForm()
@@ -54,6 +53,7 @@ def consent_request():
         consent = Consent(
                             user_id = current_user.id,
                             patient_id = patient.id,
+                            hip_id = form.hip_id.data,
                             record_id = form.record_id.data,
                             purpose = PURPOSE_MAP[form.purpose.data],
                             time_from = form.time_from.data,
@@ -76,7 +76,18 @@ def consent_request():
         flash(f'Your consent request has been sent to the patient.', 'success')
         return redirect(url_for('home'))
     else:
-        return render_template('consent.html', title = 'Consent', form = form)
+        return render_template('consent_request.html', title = 'Consent', form = form)
+
+@app.route('/data_request', methods = ['GET', 'POST'])
+@login_required
+def data_request():
+    form = DataRequestForm()
+    consents = Consent.query.filter_by(user_id = current_user.id, accept = True)
+    form.consent_id.choices = [(i.id, str(i)) for i in consents]
+    if request.method == 'POST' and form.validate_on_submit():
+        pass
+    else:
+        return render_template('data_request.html', title = 'Consent', form = form)
 
 @app.route('/home')
 def home():

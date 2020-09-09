@@ -14,6 +14,8 @@ def get_consent_request():
     time_from = datetime.datetime.strptime(content['time_from'], '%Y-%m-%d').date()
     time_to = datetime.datetime.strptime(content['time_to'], '%Y-%m-%d').date()
     user = User.query.filter_by(health_id = content['health_id']).first()
+    if not user:
+        return make_response("No such user", 400)
     r = Consent_Request(user_id = user.id,
                         request_id = content['request_id'],
                         hiu_id = content['hiu_id'],
@@ -78,7 +80,7 @@ def home():
 @app.route("/request/<int:request_id>/accept")
 def accept_request(request_id):
     request = Consent_Request.query.filter_by(id = request_id).first()
-    data = {'consent_id' : request.id, 'hiu_id' : request.hiu_id, 'accept' : True}
+    data = {'consent_id' : request.request_id, 'hiu_id' : request.hiu_id, 'accept' : True}
     response = requests.post('http://127.0.0.1:5000/consent_listener', json = data)
     flash(f'Your consent has been sent.', 'success')
     db.session.delete(request)
@@ -88,7 +90,7 @@ def accept_request(request_id):
 @app.route("/request/<int:request_id>/deny")
 def deny_request(request_id):
     request = Consent_Request.query.filter_by(id = request_id).first()
-    data = {'consent_id' : request.id, 'hiu_id' : request.hiu_id, 'accept' : False}
+    data = {'consent_id' : request.request_id, 'hiu_id' : request.hiu_id, 'accept' : False}
     response = requests.post('http://127.0.0.1:5000/consent_listener', json = data)
     flash(f'Your consent denial has been sent.', 'success')
     db.session.delete(request)
