@@ -3,6 +3,7 @@ from wtforms import IntegerField, StringField, PasswordField, SubmitField, Boole
 from wtforms.fields.html5 import DateField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError
 from hiu.models import User, Patient, Consent, PurposeType, UserType
+from hiu import bcrypt
 
 USER_TYPE = ["Doctor", "Nurse", "Receptionist", "Pharmacist"]
 PURPOSE = ["Diagnosis", "Prescription"]
@@ -44,6 +45,11 @@ class LoginForm(FlaskForm):
         if not user:
             raise ValidationError('A user with that email does not exist!')
 
+    def validate_password(self, password):
+        user = User.query.filter_by(email = self.email.data).first()
+        if not (user and bcrypt.check_password_hash(user.password, password.data)):
+            raise ValidationError('Wrong password')
+
 class ConsentForm(FlaskForm):
     health_id = StringField('Health ID', validators = [DataRequired()])
     hip_id = IntegerField('HIP ID', validators = [DataRequired()])
@@ -67,7 +73,7 @@ class DataRequestForm(FlaskForm):
     hip_id = IntegerField('HIP ID', validators = [DataRequired()])
     record_id = IntegerField('Record ID', validators = [DataRequired()])
     consent_id = SelectField('Consent', validators = [DataRequired()])
-    submit = SubmitField('Submit Consent Request')
+    submit = SubmitField('Submit Data Request')
 
     def validate_health_id(self, health_id):
         patient = Patient.query.filter_by(health_id = health_id.data).first()

@@ -26,7 +26,8 @@ def get_consent_request():
                         record_id = content['record_id'],
                         purpose = PURPOSE_MAP[content['purpose']],
                         time_from = time_from,
-                        time_to = time_to
+                        time_to = time_to,
+                        accept = False
                     )
     db.session.add(r)
     db.session.commit()
@@ -72,18 +73,27 @@ def register():
 @login_required
 def home():
     if current_user.is_authenticated:
-        requests = Consent_Request.query.filter_by(user_id = current_user.id)
+        requests = Consent_Request.query.filter_by(user_id = current_user.id, accept = False)
         return render_template('home.html', title = 'Home', requests = requests)
+    else:
+        return redirect(url_for('login'))
+
+@app.route('/view_approvals')
+@login_required
+def view_approvals():
+    if current_user.is_authenticated:
+        requests = Consent_Request.query.filter_by(user_id = current_user.id, accept = True)
+        return render_template('view_approvals.html', title = 'View Approvals', requests = requests)
     else:
         return redirect(url_for('login'))
 
 @app.route("/request/<int:request_id>/accept")
 def accept_request(request_id):
     request = Consent_Request.query.filter_by(id = request_id).first()
+    request.accept = True
     data = {'consent_id' : request.request_id, 'hiu_id' : request.hiu_id, 'accept' : True}
     response = requests.post('http://127.0.0.1:5000/consent_listener', json = data)
     flash(f'Your consent has been sent.', 'success')
-    db.session.delete(request)
     db.session.commit()
     return redirect(url_for('home'))
 

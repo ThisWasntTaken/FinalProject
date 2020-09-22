@@ -2,6 +2,7 @@ from flask_wtf import FlaskForm
 from wtforms import IntegerField, StringField, PasswordField, SubmitField, BooleanField, RadioField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError
 from cm.models import User
+from cm import bcrypt
 
 class RegistrationForm(FlaskForm):
     health_id = StringField('Health ID', validators = [DataRequired()])
@@ -32,3 +33,8 @@ class LoginForm(FlaskForm):
         user = User.query.filter_by(health_id = health_id.data).first()
         if not user:
             raise ValidationError('A user with that Health ID does not exist!')
+
+    def validate_password(self, password):
+        user = User.query.filter_by(health_id = self.health_id.data).first()
+        if not (user and bcrypt.check_password_hash(user.password, password.data)):
+            raise ValidationError('Wrong password')

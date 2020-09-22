@@ -28,7 +28,7 @@ class Patient(db.Model):
 class Record(db.Model):
     id = db.Column(db.Integer, primary_key = True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patient.id'), nullable = False)
-    data = db.Column(db.Text)
+    data = db.Column(db.String(100), nullable = False)
 
 # class Consent(db.Model):
 #     id = db.Column(db.Integer, primary_key = True)

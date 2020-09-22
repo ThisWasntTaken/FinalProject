@@ -4,9 +4,12 @@ from hiu.forms import RegistrationForm, LoginForm, ConsentForm, DataRequestForm
 from hiu import app, db, bcrypt
 from flask_login import login_user, current_user, logout_user, login_required
 import requests
+from datetime import datetime
 
 PURPOSE_MAP = {"Diagnosis" : PurposeType.DIAGNOSIS, "Prescription" : PurposeType.PRESCRIPTION}
+INVERSE_PURPOSE_MAP = {val : key for key, val in PURPOSE_MAP.items()}
 USER_TYPE_MAP = {"Doctor" : UserType.DOCTOR, "Nurse" : UserType.NURSE, "Receptionist" : UserType.RECEPTIONIST, "Pharmacist" : UserType.PHARMACIST}
+INVERSE_USER_TYPE_MAP = {val : key for key, val in USER_TYPE_MAP.items()}
 
 @app.route('/', methods = ['GET', 'POST'])
 @app.route('/login', methods = ['GET', 'POST'])
@@ -83,9 +86,23 @@ def consent_request():
 def data_request():
     form = DataRequestForm()
     consents = Consent.query.filter_by(user_id = current_user.id, accept = True)
-    form.consent_id.choices = [(i.id, str(i)) for i in consents]
+    form.consent_id.choices = [(i.id, str(i)) for i in consents if i.time_from <= datetime.now() <= i.time_to]
     if request.method == 'POST' and form.validate_on_submit():
-        pass
+        consent = Consent.query.filter_by(id = int(form.consent_id.data)).first()
+        consent_dict = {
+                            'record_id' : consent.record_id,
+                            'purpose' : INVERSE_PURPOSE_MAP[consent.purpose],
+                            'time_from' : str(consent.time_from),
+                            'time_to' : str(consent.time_to)
+                        }
+        data = {'consent' : consent_dict,
+                'health_id' : form.health_id.data,
+                'hip_id' : int(form.hip_id.data),
+                'record_id' : int(form.record_id.data),
+                'user_type' : INVERSE_USER_TYPE_MAP[current_user.user_type]
+        }
+        response = requests.post('http://127.0.0.1:5000/get_data_request', json = data)
+        return "Data : " + response.text
     else:
         return render_template('data_request.html', title = 'Consent', form = form)
 

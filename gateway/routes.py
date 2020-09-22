@@ -11,11 +11,18 @@ def get_consent_request():
     content['hiu_name'] = hiu.name
     content['hip_name'] = hip.name
     response = requests.post('http://127.0.0.1:5001/get_consent_request', json = content)
-    return make_response("", response.status_code)
+    return make_response(response.text, response.status_code)
 
 @app.route('/consent_listener', methods = ['POST'])
 def consent_listener():
     content = request.get_json()
     hiu = Hiu.query.filter_by(id = content['hiu_id']).first()
     response = requests.post(hiu.url + '/consent_listener', json = content)
-    return make_response("", response.status_code)
+    return make_response(response.text, response.status_code)
+
+@app.route('/get_data_request', methods = ['POST'])
+def get_data_request():
+    content = request.get_json()
+    hip = Hip.query.filter_by(id = content['hip_id']).first()
+    response = requests.post(hip.url + '/get_data_request', json = content)
+    return make_response(response.text, response.status_code)
