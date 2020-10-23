@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import IntegerField, StringField, PasswordField, SubmitField, BooleanField, RadioField
+from wtforms import IntegerField, StringField, PasswordField, SubmitField, BooleanField, RadioField, FileField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError
 from cm.models import User
 from cm import bcrypt
@@ -38,3 +38,7 @@ class LoginForm(FlaskForm):
         user = User.query.filter_by(health_id = self.health_id.data).first()
         if not (user and bcrypt.check_password_hash(user.password, password.data)):
             raise ValidationError('Wrong password')
+
+class PrivateKeyForm(FlaskForm):
+    file = FileField('Private Key File', validators = [DataRequired()])
+    submit = SubmitField('Create Consent Artefact')

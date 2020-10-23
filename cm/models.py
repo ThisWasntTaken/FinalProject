@@ -1,14 +1,10 @@
 from cm import db, login_manager
-import enum
 from flask_login import UserMixin
+from utils import *
 
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
-
-class PurposeType(enum.Enum):
-    DIAGNOSIS = "diagnosis"
-    PRESCRIPTION = "prescription"
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key = True)

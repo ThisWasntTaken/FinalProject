@@ -4,8 +4,10 @@ from flask_bcrypt import Bcrypt
 from flask_login import LoginManager
 
 app = Flask(__name__)
+app.config['HIP_ID'] = 1
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site' + str(app.config['HIP_ID']) + ".db"
 app.config['SECRET_KEY'] = 'c7e0795facd1a95n36139f72z5de037e'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
+app.config['SESSION_COOKIE_NAME'] = "hip_" + str(app.config['HIP_ID'])
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)

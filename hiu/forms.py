@@ -5,7 +5,7 @@ from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationE
 from hiu.models import User, Patient, Consent, PurposeType, UserType
 from hiu import bcrypt
 
-USER_TYPE = ["Doctor", "Nurse", "Receptionist", "Pharmacist"]
+USER_TYPE = ["Admin", "Doctor", "Nurse", "Receptionist", "Pharmacist"]
 PURPOSE = ["Diagnosis", "Prescription"]
 
 class RegistrationForm(FlaskForm):
@@ -24,10 +24,6 @@ class RegistrationForm(FlaskForm):
         
         if self.user_type.data == "Doctor" and digi_doctor_id.data == "":
             raise ValidationError('Doctors need to enter their DigiDoctor ID!')
-
-        user = User.query.filter_by(digi_doctor_id = digi_doctor_id.data).first()
-        if user:
-            raise ValidationError('A user with that DigiDoctor ID already exists!')
 
     def validate_email(self, email):
         user = User.query.filter_by(email = email.data).first()
@@ -79,3 +75,24 @@ class DataRequestForm(FlaskForm):
         patient = Patient.query.filter_by(health_id = health_id.data).first()
         if not patient:
             raise ValidationError('A patient with that Health ID does not exist!')
+
+class CreateTeamForm(FlaskForm):
+    consent_id = IntegerField('Consent ID', validators = [DataRequired()])
+    id_1 = IntegerField('ID of member', validators = [DataRequired()])
+    id_2 = IntegerField('ID of member', validators = [DataRequired()])
+    submit = SubmitField('Create Team')
+
+    def validate_consent_id(self, consent_id):
+        consent = Consent.query.filter_by(id = consent_id.data).first()
+        if not consent:
+            raise ValidationError('A consent with that ID does not exist!')
+
+    def validate_id_1(self, id_1):
+        user = User.query.filter_by(id = id_1.data).first()
+        if not user:
+            raise ValidationError('A user with that ID does not exist!')
+
+    def validate_id_2(self, id_2):
+        user = User.query.filter_by(id = id_2.data).first()
+        if not user:
+            raise ValidationError('A user with that ID does not exist!')

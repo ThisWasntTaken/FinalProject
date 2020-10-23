@@ -1,26 +1,12 @@
 from hip import db, login_manager
-import enum
 from flask_login import UserMixin
-
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
-
-class UserType(enum.Enum):
-    DOCTOR = "Doctor"
-    NURSE = "Nurse"
-    RECEPTIONIST = "Receptionist"
-    PHARMACIST = "Pharmacist"
-
-class PurposeType(enum.Enum):
-    DIAGNOSIS = "Diagnosis"
-    PRESCRIPTION = "Prescription"
 
 class Patient(db.Model):
     id = db.Column(db.Integer, primary_key = True)
-    health_id = db.Column(db.Integer, nullable = True, unique = True)
+    health_id = db.Column(db.String(20), nullable = True, unique = True)
     name = db.Column(db.String(40), nullable = False)
     email = db.Column(db.String(120), unique = True, nullable = False)
+    public_key = db.Column(db.BLOB, unique = True, nullable = False)
 
     def __repr__(self):
         return f"Patient({self.health_id}, {self.name}, {self.email})"
