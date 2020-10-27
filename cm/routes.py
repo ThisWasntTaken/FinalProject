@@ -33,7 +33,7 @@ def get_consent_request():
                         purpose = PURPOSE_MAP[content['purpose']],
                         time_from = time_from,
                         time_to = time_to,
-                        accept = False
+                        status = StatusType.ACTIVE
                     )
     db.session.add(r)
     db.session.commit()
@@ -79,8 +79,8 @@ def register():
 @login_required
 def home():
     if current_user.is_authenticated:
-        requests = Consent_Request.query.filter_by(user_id = current_user.id, accept = False)
-        return render_template('home.html', title = 'Home', requests = requests)
+        requests = Consent_Request.query.filter_by(user_id = current_user.id, status = StatusType.ACTIVE)
+        return render_template('home.html', title = 'Home', requests = requests, inverse_purpose_map = INVERSE_PURPOSE_MAP)
     else:
         return redirect(url_for('login'))
 
@@ -88,8 +88,8 @@ def home():
 @login_required
 def view_approvals():
     if current_user.is_authenticated:
-        requests = Consent_Request.query.filter_by(user_id = current_user.id, accept = True).filter(Consent_Request.time_to > datetime.now())
-        return render_template('view_approvals.html', title = 'View Approvals', requests = requests)
+        requests = Consent_Request.query.filter_by(user_id = current_user.id, status = StatusType.ACCEPTED).filter(Consent_Request.time_to > datetime.now())
+        return render_template('view_approvals.html', title = 'View Approvals', requests = requests, inverse_purpose_map = INVERSE_PURPOSE_MAP)
     else:
         return redirect(url_for('login'))
 
@@ -104,7 +104,7 @@ def accept_request(request_id):
         
         req = Consent_Request.query.filter_by(id = request_id).first()
         artefact = json.dumps({
-            "record_id" : req.request_id,
+            "record_id" : req.record_id,
             "hip_id" : req.hip_id,
             "purpose" : INVERSE_PURPOSE_MAP[req.purpose],
             "time_from" : str(req.time_from),
@@ -116,10 +116,10 @@ def accept_request(request_id):
         response = requests.post('http://127.0.0.1:5000/consent_listener', json = data)
         flash(f'Your consent has been sent.', 'success')
         if response.status_code == 201:
-            req.accept = True
+            req.status = StatusType.ACCEPTED
             db.session.commit()
         elif response.status_code == 401:
-            flash(f'Invalid Signature. You consent was not accepted.', 'danger')
+            flash(f'Invalid Signature. Your consent was not accepted.', 'danger')
         return redirect(url_for('home'))
     else:
         return render_template('private_key_upload.html', title = 'Generate Consent Artefact', form=form)

@@ -31,11 +31,3 @@ def get_data():
         return make_response(json.dumps(data), 201)
     except:
         return make_response("Invalid Signature", 401)
-
-# @app.route('/consent_listener', methods = ['POST'])
-# def consent_listener():
-#     content = request.get_json()
-#     consent = Consent.query.filter_by(id = content['consent_id']).first()
-#     consent.accept = content['accept']
-#     db.session.commit()
-#     return make_response("Received consent status", 201)

@@ -30,4 +30,4 @@ class Consent_Request(db.Model):
     purpose = db.Column(db.Enum(PurposeType), nullable = False)
     time_from = db.Column(db.DateTime, nullable = False)
     time_to = db.Column(db.DateTime, nullable = False)
-    accept = db.Column(db.Boolean, default = False, nullable = False)
+    status = db.Column(db.Enum(StatusType), nullable = False)

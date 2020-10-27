@@ -7,11 +7,13 @@
             <a class="mr-2">{{ request.requester_name }} of {{ request.hiu_name }}</a>
             <small class="text-muted">{{ request.time_from.strftime('%Y-%m-%d') }} to {{ request.time_to.strftime('%Y-%m-%d') }}</small>
             </div>
-            <h2><a class="article-title">{{ request.record_id }} from {{ request.hip_name }} for {{ request.purpose }}</a></h2>
+            <h2><a class="article-title">{{ request.record_id }} from {{ request.hip_name }} for {{ inverse_purpose_map[request.purpose] }}</a></h2>
             <div>
               <a class="btn btn-danger" href="{{ url_for('deny_request', request_id = request.id) }}">Revoke</a>
             </div>
         </div>
         </article>
+    {% else %}
+        You have no approved Consent Requests that can be revoked at this time.
     {% endfor %}
 {% endblock content %}

@@ -17,6 +17,8 @@ def get_consent_request():
 def consent_listener():
     content = request.get_json()
     hiu = Hiu.query.filter_by(id = content['hiu_id']).first()
+    if not hiu:
+        return make_response("No HIU with that ID", 404)
     response = requests.post(hiu.url + '/consent_listener', json = content)
     return make_response(response.text, response.status_code)
 
@@ -24,5 +26,7 @@ def consent_listener():
 def get_data_request():
     content = request.get_json()
     hip = Hip.query.filter_by(id = content['hip_id']).first()
+    if not hip:
+        return make_response("No HIP with that ID", 404)
     response = requests.post(hip.url + '/get_data_request', json = content)
     return make_response(response.text, response.status_code)

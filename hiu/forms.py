@@ -4,9 +4,10 @@ from wtforms.fields.html5 import DateField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError
 from hiu.models import User, Patient, Consent, PurposeType, UserType
 from hiu import bcrypt
+from utils import *
 
-USER_TYPE = ["Admin", "Doctor", "Nurse", "Receptionist", "Pharmacist"]
-PURPOSE = ["Diagnosis", "Prescription"]
+USER_TYPE = USER_TYPE_MAP.keys()
+PURPOSE = PURPOSE_MAP.keys()
 
 class RegistrationForm(FlaskForm):
     user_type = SelectField('Type of User', choices = [(i, i) for i in USER_TYPE], validators = [DataRequired()])
@@ -68,6 +69,7 @@ class DataRequestForm(FlaskForm):
     health_id = StringField('Health ID', validators = [DataRequired()])
     hip_id = IntegerField('HIP ID', validators = [DataRequired()])
     record_id = IntegerField('Record ID', validators = [DataRequired()])
+    purpose = SelectField('Purpose', choices = [(i, i) for i in PURPOSE], validators = [DataRequired()])
     consent_id = SelectField('Consent', validators = [DataRequired()])
     submit = SubmitField('Submit Data Request')
 

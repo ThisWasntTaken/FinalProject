@@ -59,21 +59,20 @@ def create_team():
     form = CreateTeamForm()
     if request.method == 'POST' and form.validate_on_submit():
         consent = Consent.query.filter_by(id = form.consent_id.data).first()
-        if not consent.accept:
-            flash(f'That consent has not been accepted yet.', 'danger')
+        if not consent.status == StatusType.ACCEPTED or consent.derived_from is not None:
+            flash(f'That consent is not available at this time.', 'danger')
             return render_template('create_team.html', title = 'Create Team', form = form)
         
         for i in [form.id_1.data, form.id_2.data]:
             if i != consent.user_id:
                 derived = Consent(
+                            derived_from = consent.id,
                             user_id = i,
                             patient_id = consent.patient_id,
                             hip_id = consent.hip_id,
-                            record_id = consent.record_id,
-                            purpose = consent.purpose,
-                            time_from = consent.time_from,
-                            time_to = consent.time_to,
-                            accept = True
+                            artefact = consent.artefact,
+                            signature = consent.signature,
+                            status = StatusType.ACCEPTED
                         )
                 db.session.add(derived)
                 db.session.commit()
@@ -88,12 +87,13 @@ def consent_request():
     if request.method == 'POST' and form.validate_on_submit():
         patient = Patient.query.filter_by(health_id = form.health_id.data).first()
         consent = Consent(
+                            derived_from = None,
                             user_id = current_user.id,
                             patient_id = patient.id,
                             hip_id = form.hip_id.data,
                             artefact = None,
                             signature = None,
-                            accept = False
+                            status = StatusType.ACTIVE
                         )
         db.session.add(consent)
         db.session.commit()
@@ -117,7 +117,7 @@ def consent_request():
 @login_required
 def data_request():
     form = DataRequestForm()
-    consents = Consent.query.filter_by(user_id = current_user.id, accept = True)
+    consents = Consent.query.filter_by(user_id = current_user.id, status = StatusType.ACCEPTED)
     form.consent_id.choices = [(i.id, str(i)) for i in consents]
     if request.method == 'POST' and form.validate_on_submit():
         consent = Consent.query.filter_by(id = int(form.consent_id.data)).first()
@@ -127,6 +127,7 @@ def data_request():
                 'signature' : signature,
                 'health_id' : form.health_id.data,
                 'hip_id' : int(form.hip_id.data),
+                'purpose' : form.purpose.data,
                 'user_type' : INVERSE_USER_TYPE_MAP[current_user.user_type]
         }
         response = requests.post('http://127.0.0.1:5000/get_data_request', json = data)
@@ -155,7 +156,7 @@ def consent_listener():
         verifier = pss.new(RSA.import_key(patient.public_key))
         try:
             verifier.verify(h, signature)
-            consent.accept = True
+            consent.status = StatusType.ACCEPTED
             consent.artefact = artefact.encode('utf-8')
             consent.signature = signature
             db.session.commit()
@@ -164,11 +165,15 @@ def consent_listener():
             return make_response("Invalid Signature", 401)
     else:
         consent = Consent.query.filter_by(id = content['consent_id']).first()
-        consent.artefact = None
-        consent.artefact = None
-        consent.accept = False
+        if consent.status == StatusType.ACCEPTED:
+            consent.status = StatusType.REVOKED
+            derived_consents = Consent.query.filter_by(derived_from = consent.id)
+            for d_c in derived_consents:
+                d_c.status = StatusType.REVOKED
+        else:
+            consent.status = StatusType.DENIED
         db.session.commit()
         return make_response("Received consent status", 201)
 
-def check_on_duty_roster():
-    return time(9, 0, 0, 0) <= datetime.now().time() <= time(21, 0, 0, 0)
+# def check_on_duty_roster():
+#     return time(9, 0, 0, 0) <= datetime.now().time() <= time(21, 0, 0, 0)

@@ -30,12 +30,13 @@ class Patient(db.Model):
 
 class Consent(db.Model):
     id = db.Column(db.Integer, primary_key = True)
+    derived_from = db.Column(db.Integer, db.ForeignKey('consent.id'), nullable = True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable = False)
     patient_id = db.Column(db.Integer, db.ForeignKey('patient.id'), nullable = False)
     hip_id = db.Column(db.Integer, nullable = False)
     artefact = db.Column(db.BLOB, nullable = True)
     signature = db.Column(db.BLOB, nullable = True)
-    accept = db.Column(db.Boolean, default = False, nullable = False)
+    status = db.Column(db.Enum(StatusType), nullable = False)
 
     def __repr__(self):
         return f"Consent(ID = {self.id}, Patient ID = {self.patient_id}, HIP ID = {self.hip_id})"
