@@ -1,7 +1,7 @@
 from flask import render_template, url_for, flash, redirect, request, make_response, jsonify
-from hiu.models import User, Patient, Consent
-from hiu.forms import RegistrationForm, LoginForm, ConsentForm, DataRequestForm, CreateTeamForm
-from hiu import app, db, bcrypt
+from hiup.models import User, Patient, Consent, Record
+from hiup.forms import RegistrationForm, LoginForm, ConsentForm, DataRequestForm, CreateTeamForm
+from hiup import app, db, bcrypt
 from flask_login import login_user, current_user, logout_user, login_required
 import requests
 import json
@@ -102,6 +102,7 @@ def consent_request():
                 'hiu_id' : app.config['HIU_ID'],
                 'requester_name' : current_user.name,
                 'hip_id' : form.hip_id.data,
+                'encounter_id' : form.encounter_id.data,
                 'record_id' : form.record_id.data,
                 'purpose' : form.purpose.data,
                 'time_from' : str(form.time_from.data),
@@ -117,21 +118,34 @@ def consent_request():
 @login_required
 def data_request():
     form = DataRequestForm()
-    consents = Consent.query.filter_by(user_id = current_user.id, status = StatusType.ACCEPTED)
+    consents = Consent.query.filter_by(status = StatusType.ACCEPTED)
     form.consent_id.choices = [(i.id, str(i)) for i in consents]
     if request.method == 'POST' and form.validate_on_submit():
         consent = Consent.query.filter_by(id = int(form.consent_id.data)).first()
-        artefact = consent.artefact.decode('utf-8')
-        signature = base64.b64encode(consent.signature).decode('utf-8')
-        data = {'artefact' : artefact,
-                'signature' : signature,
-                'health_id' : form.health_id.data,
-                'hip_id' : int(form.hip_id.data),
-                'purpose' : form.purpose.data,
-                'user_type' : INVERSE_USER_TYPE_MAP[current_user.user_type]
-        }
-        response = requests.post('http://127.0.0.1:5000/get_data_request', json = data)
-        return response.text
+        patient = Patient.query.filter_by(id = consent.patient_id).first()
+        artefact = consent.artefact
+        signature = consent.signature
+        if not(consent.user_id == current_user.id or check_on_duty()):
+            flash(f"You do not have the permission to perform data requests at this time.", "danger")
+        
+        if not check_constraints(patient, artefact, signature, PURPOSE_MAP[form.purpose.data], current_user.user_type):
+            flash(f"Invalid request, constraints not satisfied.", "danger")
+        
+        if consent.hip_id == int(app.config['HIP_ID']):            
+            response = get_data(artefact, PURPOSE_MAP[form.purpose.data], current_user.user_type)
+            return response
+        else:
+            artefact = artefact.decode('utf-8')
+            signature = base64.b64encode(signature).decode('utf-8')
+            data = {'artefact' : artefact,
+                    'signature' : signature,
+                    'health_id' : patient.health_id,
+                    'hip_id' : consent.hip_id,
+                    'purpose' : form.purpose.data,
+                    'user_type' : INVERSE_USER_TYPE_MAP[current_user.user_type]
+            }
+            response = requests.post('http://127.0.0.1:5000/get_data_request', json = data)
+            return response.text
     else:
         return render_template('data_request.html', title = 'Consent', form = form)
 
@@ -175,5 +189,59 @@ def consent_listener():
         db.session.commit()
         return make_response("Received consent status", 201)
 
-# def check_on_duty_roster():
-#     return time(9, 0, 0, 0) <= datetime.now().time() <= time(21, 0, 0, 0)
+def check_on_duty():
+    return (current_user.user_type in [UserType.NURSE, UserType.RECEPTIONIST] and time(9, 0, 0, 0) <= datetime.now().time() <= time(21, 0, 0, 0))\
+    or (current_user.user_type in [UserType.DOCTOR, UserType.PHARMACIST])
+
+def check_constraints(patient, artefact, signature, purpose, user_type):
+    h = SHA256.new(artefact)
+    verifier = pss.new(RSA.import_key(patient.public_key))
+    try:
+        verifier.verify(h, signature)
+    except:
+        return False
+    # print(purpose, record_type, user_type)
+    # print(artefact)
+    # time_from = datetime.strptime(artefact['time_from'], '%Y-%m-%d %H:%M:%S').date()
+    # time_to = datetime.strptime(artefact['time_to'], '%Y-%m-%d %H:%M:%S').date()
+    # if PURPOSE_MAP[artefact['purpose']] not in [purpose, PurposeType.ROUNDS]\
+    # and time_from <= datetime.now().date() <= time_to\
+    # and record_type in USERTYPE_RECORDTYPE_MAP[user_type]\
+    # and record_type in PURPOSETYPE_RECORDTYPE_MAP[purpose]\
+    # and purpose in USERTYPE_PURPOSETYPE_MAP[user_type]:
+    return True
+
+@app.route('/get_data_request', methods = ['POST'])
+def get_data_request():
+    content = request.get_json()
+    patient = Patient.query.filter_by(health_id = content['health_id']).first()
+    signature = base64.b64decode(content['signature'].encode('utf-8'))
+    artefact = content['artefact']
+    h = SHA256.new(artefact.encode('utf-8'))
+    verifier = pss.new(RSA.import_key(patient.public_key))
+    try:
+        verifier.verify(h, signature)
+    except:
+        return make_response("Invalid Signature", 401)
+    
+    response = get_data(artefact, PURPOSE_MAP[content['purpose']], USER_TYPE_MAP[content['user_type']])
+    return response
+
+def get_data(artefact, purpose, user_type):
+    artefact = json.loads(artefact)
+    if artefact['hip_id'] != int(app.config['HIP_ID']):
+        return make_response("Wrong Hip ID.", 401)
+    
+    if artefact['record_id']:
+        record = Record.query.filter_by(id = artefact['record_id']).first()
+        if not record:
+            return make_response("Record not found", 404)
+        
+        return make_response(json.dumps({record.id : record.data}), 201)
+    
+    records = Record.query.filter_by(encounter_id = artefact['encounter_id'])
+    data = dict()
+    for record in records:
+        data[record.id] = record.data
+    
+    return make_response(json.dumps(data), 201)

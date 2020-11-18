@@ -1,9 +1,11 @@
+from hiup.models import Encounter
 from Crypto.Signature import pss
 from Crypto.Hash import SHA256
 from Crypto.PublicKey import RSA
 from Crypto import Random
 import json
 import base64
+from utils import RecordType
 
 artefact = json.dumps({"1":1, "2":2})
 
@@ -22,16 +24,35 @@ j = json.dumps({'artefact' : artefact, 'signature' : signature})
 # public_key = private_key.publickey()
 # with open('./public_key.pem','wb') as f:
 #     f.write(public_key.exportKey('PEM'))
-#     from hiu import db
-#     from hiu.models import Patient
-#     patient = Patient(health_id = 1, name = "Jayanth Shreekumar", email = "jayanthshreekumar@gmail.com", public_key = public_key.export_key())
+#     from hiup import db
+#     from hiup.models import Patient
+#     patient = Patient(health_id = 1, name = "Patient1", email = "patient@patient.com", public_key = public_key.export_key())
 #     db.session.add(patient)
 #     db.session.commit()
 
+# with open('./public_key.pem','rb') as f:
+#     from hiup import db
+#     from hiup.models import Patient, Record
+#     public_key = RSA.import_key(f.read())
+#     patient = Patient(health_id = 1, name = "Patient1", email = "patient1@patient.com", public_key = public_key.export_key())
+#     db.session.add(patient)
+#     db.session.commit()
+#     encounter = Encounter(patient_id = 1)
+#     db.session.add(encounter)
+#     db.session.commit()
+#     record = Record(encounter_id = 2, patient_id = 1, data = "Patient1's Encounter 2 Prescription at Hiu2", record_type = RecordType.PRESCRIPTION)
+#     db.session.add(record)
+#     record = Record(encounter_id = 2, patient_id = 1, data = "Patient1's Encounter 2 MRI at Hiu2", record_type = RecordType.MRI)
+#     db.session.add(record)
+#     record = Record(encounter_id = 2, patient_id = 1, data = "Patient1's Encounter 2 Registration at Hiu2", record_type = RecordType.REGISTRATION)
+#     db.session.add(record)
+#     db.session.commit()
+#     record = Record(encounter_id = 1, patient_id = 1, data = "Patient1's Encounter 1 Blood Test at Hiu2", record_type = RecordType.BLOOD_TEST)
+#     db.session.add(record)
+#     db.session.commit()
+
 with open('./public_key.pem','rb') as f:
-    from hip.models import Patient
-    patient = Patient.query.filter_by(health_id = 1).first()
-    public_key = RSA.import_key(patient.public_key)
+    public_key = RSA.import_key(f.read())
 
 m = json.loads(j)
 signature = base64.b64decode(m['signature'].encode('utf-8'))

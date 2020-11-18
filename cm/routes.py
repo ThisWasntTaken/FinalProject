@@ -22,6 +22,7 @@ def get_consent_request():
     user = User.query.filter_by(health_id = content['health_id']).first()
     if not user:
         return make_response("No such user", 400)
+    
     r = Consent_Request(user_id = user.id,
                         request_id = content['request_id'],
                         hiu_id = content['hiu_id'],
@@ -29,6 +30,7 @@ def get_consent_request():
                         requester_name = content['requester_name'],
                         hip_id = content['hip_id'],
                         hip_name = content['hip_name'],
+                        encounter_id = content['encounter_id'],
                         record_id = content['record_id'],
                         purpose = PURPOSE_MAP[content['purpose']],
                         time_from = time_from,
@@ -88,7 +90,7 @@ def home():
 @login_required
 def view_approvals():
     if current_user.is_authenticated:
-        requests = Consent_Request.query.filter_by(user_id = current_user.id, status = StatusType.ACCEPTED).filter(Consent_Request.time_to > datetime.now())
+        requests = Consent_Request.query.filter_by(user_id = current_user.id, status = StatusType.ACCEPTED).filter(Consent_Request.time_to >= datetime.now().date())
         return render_template('view_approvals.html', title = 'View Approvals', requests = requests, inverse_purpose_map = INVERSE_PURPOSE_MAP)
     else:
         return redirect(url_for('login'))
@@ -104,6 +106,7 @@ def accept_request(request_id):
         
         req = Consent_Request.query.filter_by(id = request_id).first()
         artefact = json.dumps({
+            "encounter_id" : req.encounter_id,
             "record_id" : req.record_id,
             "hip_id" : req.hip_id,
             "purpose" : INVERSE_PURPOSE_MAP[req.purpose],
@@ -130,6 +133,6 @@ def deny_request(request_id):
     data = {'consent_id' : req.request_id, 'hiu_id' : req.hiu_id, 'accept' : False}
     response = requests.post('http://127.0.0.1:5000/consent_listener', json = data)
     flash(f'Your consent denial has been sent.', 'success')
-    db.session.delete(req)
+    req.status = StatusType.REVOKED
     db.session.commit()
     return redirect(url_for('home'))

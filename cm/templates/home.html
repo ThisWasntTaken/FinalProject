@@ -7,7 +7,13 @@
             <a class="mr-2">{{ request.requester_name }} of {{ request.hiu_name }}</a>
             <small class="text-muted">{{ request.time_from.strftime('%Y-%m-%d') }} to {{ request.time_to.strftime('%Y-%m-%d') }}</small>
             </div>
-            <h2><a class="article-title">{{ request.record_id }} from {{ request.hip_name }} for {{ inverse_purpose_map[request.purpose] }}</a></h2>
+            {% if (request.encounter_id is not none and request.record_id is not none) %}
+                <h2><a class="article-title">Encounter {{ request.encounter_id }}, Record {{ request.record_id }} from {{ request.hip_name }} for {{ inverse_purpose_map[request.purpose] }}</a></h2>
+            {% elif request.encounter_id is not none %}
+                <h2><a class="article-title">Encounter {{ request.encounter_id }} from {{ request.hip_name }} for {{ inverse_purpose_map[request.purpose] }}</a></h2>
+            {% else %}
+                <h2><a class="article-title">Record {{ request.record_id }} from {{ request.hip_name }} for {{ inverse_purpose_map[request.purpose] }}</a></h2>
+            {% endif %}
             <div>
               <a class="btn btn-info" href="{{ url_for('accept_request', request_id = request.id) }}">Accept</a>
               <a class="btn btn-danger" href="{{ url_for('deny_request', request_id = request.id) }}">Deny</a>
