@@ -30,8 +30,8 @@ def get_consent_request():
                         requester_name = content['requester_name'],
                         hip_id = content['hip_id'],
                         hip_name = content['hip_name'],
-                        encounter_id = content['encounter_id'],
-                        record_id = content['record_id'],
+                        encounter_id = content['encounter_id'] if 'encounter_id' in content.keys() else None,
+                        record_id = content['record_id'] if 'record_id' in content.keys() else None,
                         purpose = PURPOSE_MAP[content['purpose']],
                         time_from = time_from,
                         time_to = time_to,
@@ -39,6 +39,7 @@ def get_consent_request():
                     )
     db.session.add(r)
     db.session.commit()
+    print("HAHAHA")
     return make_response("Received request", 201)
 
 @app.route('/login', methods = ['GET', 'POST'])
@@ -105,14 +106,18 @@ def accept_request(request_id):
             private_key = RSA.import_key(f.read())
         
         req = Consent_Request.query.filter_by(id = request_id).first()
-        artefact = json.dumps({
-            "encounter_id" : req.encounter_id,
-            "record_id" : req.record_id,
+        artefact = {
             "hip_id" : req.hip_id,
             "purpose" : INVERSE_PURPOSE_MAP[req.purpose],
             "time_from" : str(req.time_from),
             "time_to" : str(req.time_to)
-        })
+        }
+        if req.encounter_id:
+            artefact["encounter_id"] = req.encounter_id
+        if req.record_id:
+            artefact["record_id"] = req.record_id
+        
+        artefact = json.dumps(artefact)
         h = SHA256.new(artefact.encode('utf-8'))
         signature = base64.b64encode(pss.new(private_key).sign(h)).decode('utf-8')
         data = {'consent_id' : req.request_id, 'hiu_id' : req.hiu_id, 'artefact' : artefact, 'signature' : signature, 'accept' : True}
@@ -135,4 +140,4 @@ def deny_request(request_id):
     flash(f'Your consent denial has been sent.', 'success')
     req.status = StatusType.REVOKED
     db.session.commit()
-    return redirect(url_for('home'))
+    return redirect(url_for('view_approvals'))

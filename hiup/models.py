@@ -37,6 +37,8 @@ class Consent(db.Model):
     artefact = db.Column(db.BLOB, nullable = True)
     signature = db.Column(db.BLOB, nullable = True)
     status = db.Column(db.Enum(StatusType), nullable = False)
+    encounter_id = db.Column(db.Integer, db.ForeignKey('encounter.id'), nullable = True)
+    record_id = db.Column(db.Integer, db.ForeignKey('record.id'), nullable = True)
 
     def __repr__(self):
         return f"Consent(ID = {self.id}, User ID = {self.user_id}, Patient ID = {self.patient_id}, HIP ID = {self.hip_id})"
@@ -68,7 +70,6 @@ class Access_Log(db.Model):
     id = db.Column(db.Integer, primary_key = True)
     hiu_id = db.Column(db.Integer, nullable = False)
     user_id = db.Column(db.Integer, nullable = False)
-    record_id = db.Column(db.Integer, db.ForeignKey('record.id'), nullable = False)
     artefact = db.Column(db.BLOB, nullable = False)
     signature = db.Column(db.BLOB, nullable = False)
     time = db.Column(db.DateTime, nullable = False)

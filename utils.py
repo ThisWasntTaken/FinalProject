@@ -19,6 +19,7 @@ class StatusType(enum.Enum):
     ACCEPTED = "Accepted"
     DENIED = "Denied"
     REVOKED = "Revoked"
+    CACHED = "Cached"
 
 class RecordType(enum.Enum):
     REGISTRATION = "Registration"
@@ -30,6 +31,8 @@ PURPOSE_MAP = {"Diagnosis" : PurposeType.DIAGNOSIS, "Surgery" : PurposeType.SURG
 INVERSE_PURPOSE_MAP = {val : key for key, val in PURPOSE_MAP.items()}
 USER_TYPE_MAP = {"Admin" : UserType.ADMIN, "Doctor" : UserType.DOCTOR, "Nurse" : UserType.NURSE, "Receptionist" : UserType.RECEPTIONIST, "Pharmacist" : UserType.PHARMACIST}
 INVERSE_USER_TYPE_MAP = {val : key for key, val in USER_TYPE_MAP.items()}
+RECORD_TYPE_MAP = {"Registration" : RecordType.REGISTRATION, "BloodTest" : RecordType.BLOOD_TEST, "Prescription" : RecordType.PRESCRIPTION, "MRI" : RecordType.MRI}
+INVERSE_RECORD_TYPE_MAP = {val : key for key, val in RECORD_TYPE_MAP.items()}
 
 USERTYPE_RECORDTYPE_MAP = {
     UserType.DOCTOR : [RecordType.REGISTRATION, RecordType.BLOOD_TEST, RecordType.PRESCRIPTION, RecordType.MRI],

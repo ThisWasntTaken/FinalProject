@@ -81,6 +81,7 @@ class ConsentForm(FlaskForm):
 class DataRequestForm(FlaskForm):
     purpose = SelectField('Purpose', choices = [(i, i) for i in PURPOSE], validators = [DataRequired()])
     consent_id = SelectField('Consent', validators = [DataRequired()])
+    cache = BooleanField('Cache this data?')
     submit = SubmitField('Submit Data Request')
 
 class CreateTeamForm(FlaskForm):

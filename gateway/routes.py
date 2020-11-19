@@ -6,11 +6,13 @@ import requests
 @app.route('/get_consent_request', methods = ['POST'])
 def get_consent_request():
     content = request.get_json()
+    print(content)
     hiu = Hiu.query.filter_by(id = content['hiu_id']).first()
     hip = Hip.query.filter_by(id = content['hip_id']).first()
     content['hiu_name'] = hiu.name
     content['hip_name'] = hip.name
     response = requests.post('http://127.0.0.1:5001/get_consent_request', json = content)
+    print(response)
     return make_response(response.text, response.status_code)
 
 @app.route('/consent_listener', methods = ['POST'])

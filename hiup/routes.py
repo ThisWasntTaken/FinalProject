@@ -1,5 +1,5 @@
 from flask import render_template, url_for, flash, redirect, request, make_response, jsonify
-from hiup.models import User, Patient, Consent, Record
+from hiup.models import User, Patient, Consent, Encounter, Record, Request_Log, Access_Log
 from hiup.forms import RegistrationForm, LoginForm, ConsentForm, DataRequestForm, CreateTeamForm
 from hiup import app, db, bcrypt
 from flask_login import login_user, current_user, logout_user, login_required
@@ -102,13 +102,17 @@ def consent_request():
                 'hiu_id' : app.config['HIU_ID'],
                 'requester_name' : current_user.name,
                 'hip_id' : form.hip_id.data,
-                'encounter_id' : form.encounter_id.data,
-                'record_id' : form.record_id.data,
                 'purpose' : form.purpose.data,
                 'time_from' : str(form.time_from.data),
                 'time_to' : str(form.time_to.data)
         }
+        if form.encounter_id.data:
+            data['encounter_id'] = form.encounter_id.data
+        if form.record_id.data:
+            data['record_id'] = form.record_id.data
+        print(data)
         response = requests.post('http://127.0.0.1:5000/get_consent_request', json = data)
+        print(response)
         flash(f'Your consent request has been sent to the patient.', 'success')
         return redirect(url_for('home'))
     else:
@@ -118,22 +122,28 @@ def consent_request():
 @login_required
 def data_request():
     form = DataRequestForm()
-    consents = Consent.query.filter_by(status = StatusType.ACCEPTED)
+    consents = Consent.query.filter_by(status = StatusType.ACCEPTED).all()
+    consents += Consent.query.filter_by(status = StatusType.CACHED).all()
     form.consent_id.choices = [(i.id, str(i)) for i in consents]
     if request.method == 'POST' and form.validate_on_submit():
         consent = Consent.query.filter_by(id = int(form.consent_id.data)).first()
         patient = Patient.query.filter_by(id = consent.patient_id).first()
         artefact = consent.artefact
         signature = consent.signature
+        ret = None
+        request_log = Request_Log(consent_id = consent.id, time = datetime.now(), purpose = PURPOSE_MAP[form.purpose.data])
+        db.session.add(request_log)
+        db.session.commit()
         if not(consent.user_id == current_user.id or check_on_duty()):
             flash(f"You do not have the permission to perform data requests at this time.", "danger")
         
         if not check_constraints(patient, artefact, signature, PURPOSE_MAP[form.purpose.data], current_user.user_type):
             flash(f"Invalid request, constraints not satisfied.", "danger")
         
-        if consent.hip_id == int(app.config['HIP_ID']):            
-            response = get_data(artefact, PURPOSE_MAP[form.purpose.data], current_user.user_type)
-            return response
+        if consent.hip_id == int(app.config['HIP_ID']) or consent.status == StatusType.CACHED:
+            print("Local Access")
+            response = get_data(artefact.decode('utf-8'), signature, purpose = PURPOSE_MAP[form.purpose.data], hiu_id = app.config['HIU_ID'], user_id = current_user.id, consent = consent)
+            ret = response
         else:
             artefact = artefact.decode('utf-8')
             signature = base64.b64encode(signature).decode('utf-8')
@@ -142,10 +152,43 @@ def data_request():
                     'health_id' : patient.health_id,
                     'hip_id' : consent.hip_id,
                     'purpose' : form.purpose.data,
+                    'hiu_id' : app.config['HIU_ID'],
+                    'user_id' : current_user.id,
                     'user_type' : INVERSE_USER_TYPE_MAP[current_user.user_type]
             }
             response = requests.post('http://127.0.0.1:5000/get_data_request', json = data)
-            return response.text
+            if response.status_code != 201:
+                print(response.text)
+                return response.text
+            
+            ret = json.loads(response.text)
+
+        if (not consent.hip_id == int(app.config['HIP_ID'])) and form.cache.data and (not consent.status == StatusType.CACHED):
+            print("Caching data")
+            consent.status = StatusType.CACHED
+            db.session.commit()
+            artefact = json.loads(artefact)
+            if artefact['encounter_id']:
+                encounter = Encounter(patient_id = consent.patient_id)
+                db.session.add(encounter)
+                db.session.commit()
+                print(ret)
+                for _, d in ret.items():
+                    record = Record(encounter_id = encounter.id, patient_id = consent.patient_id, data = d[0], record_type = RECORD_TYPE_MAP[d[1]])
+                    db.session.add(record)
+                    db.session.commit()
+
+                consent.encounter_id = encounter.id
+                db.session.commit()
+            else:
+                d = list(ret.values())[0]
+                record = Record(patient_id = consent.patient_id, data = d[0], record_type = RECORD_TYPE_MAP[d[1]])
+                db.session.add(record)
+                db.session.commit()
+                consent.record_id = record.id
+                db.session.commit()
+
+        return ret
     else:
         return render_template('data_request.html', title = 'Consent', form = form)
 
@@ -224,24 +267,46 @@ def get_data_request():
     except:
         return make_response("Invalid Signature", 401)
     
-    response = get_data(artefact, PURPOSE_MAP[content['purpose']], USER_TYPE_MAP[content['user_type']])
+    response = get_data(artefact, signature, PURPOSE_MAP[content['purpose']], int(content['hiu_id']), int(content['user_id']))
     return response
 
-def get_data(artefact, purpose, user_type):
+def get_data(artefact, signature, purpose, hiu_id, user_id, consent=None):
+    access_log = Access_Log(hiu_id = hiu_id, user_id = user_id, artefact = artefact.encode('utf-8'), signature = signature, time = datetime.now(), purpose = purpose)
     artefact = json.loads(artefact)
-    if artefact['hip_id'] != int(app.config['HIP_ID']):
-        return make_response("Wrong Hip ID.", 401)
+
+    db.session.add(access_log)
+    db.session.commit()
     
-    if artefact['record_id']:
+    if consent and consent.status == StatusType.CACHED:
+        data = dict()
+        if consent.record_id:
+            record = Record.query.filter_by(id = consent.record_id).first()
+            if not record:
+                return make_response("Record not found", 404)
+            data[record.id] = [record.data, INVERSE_RECORD_TYPE_MAP[record.record_type]]
+        else:
+            records = Record.query.filter_by(encounter_id = consent.encounter_id)
+            if not records:
+                return make_response("Encounter not found", 404)
+            
+            for record in records:
+                data[record.id] = [record.data, INVERSE_RECORD_TYPE_MAP[record.record_type]]
+    
+        return make_response(json.dumps(data), 201)
+    
+    data = dict()
+    if 'record_id' in artefact.keys():
         record = Record.query.filter_by(id = artefact['record_id']).first()
         if not record:
             return make_response("Record not found", 404)
         
-        return make_response(json.dumps({record.id : record.data}), 201)
-    
-    records = Record.query.filter_by(encounter_id = artefact['encounter_id'])
-    data = dict()
-    for record in records:
-        data[record.id] = record.data
+        data[record.id] = [record.data, INVERSE_RECORD_TYPE_MAP[record.record_type]]
+    else:
+        records = Record.query.filter_by(encounter_id = artefact['encounter_id'])
+        if not records:
+            return make_response("Encounter not found", 404)
+        
+        for record in records:
+            data[record.id] = [record.data, INVERSE_RECORD_TYPE_MAP[record.record_type]]
     
     return make_response(json.dumps(data), 201)
