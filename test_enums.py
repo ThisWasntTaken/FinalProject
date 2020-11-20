@@ -1,11 +1,28 @@
 import enum
+import inspect
 
-class _Inside(enum.Enum):
-    Downstairs = 'downstairs'
-    Upstairs = 'upstairs'
+class _InnerSurgery(enum.Enum):
+    INNERSURGERY1 = "InnerSurgery1"
+    INNERSURGERY2 = "InnerSurgery2"
 
-class Location(enum.Enum):
-    Outside = 'outside'
-    Inside = _Inside 
+class _Surgery(enum.Enum):
+    SURGERY1 = "Surgery1"
+    SURGERY2 = "Surgery2"
+    SURGERY3 = _InnerSurgery
 
-print(Location.Inside.value.Downstairs.value)
+class _Diagnosis(enum.Enum):
+    DIAGNOSIS1 = "Diagnosis1"
+    DIAGNOSIS2 = "Diagnosis2"
+
+class _Rounds(enum.Enum):
+    ENTER_VITAL_PARAMETER = "Enter_Vital_Parameter"
+    ROUNDS1 = "Rounds1"
+
+class PurposeType(enum.Enum):
+    SURGERY = _Surgery
+    DIAGNOSIS = _Diagnosis
+    REGISTRATION = "Registration"
+    PURCHASE = "Purchase"
+    ROUNDS = _Rounds
+
+print(_InnerSurgery.INNERSURGERY1 == PurposeType.SURGERY.value.SURGERY3.value.INNERSURGERY1)

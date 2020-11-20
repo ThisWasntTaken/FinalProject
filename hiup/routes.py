@@ -12,6 +12,7 @@ from Crypto.Hash import SHA256
 from Crypto.PublicKey import RSA
 from Crypto import Random
 from utils import *
+from policies import *
 
 @app.route('/', methods = ['GET', 'POST'])
 @app.route('/login', methods = ['GET', 'POST'])
@@ -64,16 +65,16 @@ def create_team():
             return render_template('create_team.html', title = 'Create Team', form = form)
         
         for i in [form.id_1.data, form.id_2.data]:
-            if i != consent.user_id:
+            if i and i != consent.user_id:
                 derived = Consent(
-                            derived_from = consent.id,
-                            user_id = i,
-                            patient_id = consent.patient_id,
-                            hip_id = consent.hip_id,
-                            artefact = consent.artefact,
-                            signature = consent.signature,
-                            status = StatusType.ACCEPTED
-                        )
+                    derived_from = consent.id,
+                    user_id = i,
+                    patient_id = consent.patient_id,
+                    hip_id = consent.hip_id,
+                    artefact = consent.artefact,
+                    signature = consent.signature,
+                    status = StatusType.ACCEPTED
+                )
                 db.session.add(derived)
                 db.session.commit()
         return redirect(url_for('home'))
@@ -110,13 +111,29 @@ def consent_request():
             data['encounter_id'] = form.encounter_id.data
         if form.record_id.data:
             data['record_id'] = form.record_id.data
-        print(data)
         response = requests.post('http://127.0.0.1:5000/get_consent_request', json = data)
-        print(response)
         flash(f'Your consent request has been sent to the patient.', 'success')
         return redirect(url_for('home'))
     else:
         return render_template('consent_request.html', title = 'Consent', form = form)
+
+def check_constraints(patient, artefact, signature, purpose, user_type):
+    h = SHA256.new(artefact)
+    verifier = pss.new(RSA.import_key(patient.public_key))
+    try:
+        verifier.verify(h, signature)
+    except:
+        return False
+    
+    artefact = json.loads(artefact)
+    time_from = datetime.strptime(artefact['time_from'], '%Y-%m-%d %H:%M:%S').date()
+    time_to = datetime.strptime(artefact['time_to'], '%Y-%m-%d %H:%M:%S').date()
+    if purpose in [PURPOSE_MAP[artefact['purpose']], PurposeType.ROUNDS]\
+    and time_from <= datetime.now().date() <= time_to\
+    and purpose in USERTYPE_ACTIVITY_MAP[user_type]:
+        return True
+    
+    return False
 
 @app.route('/data_request', methods = ['GET', 'POST'])
 @login_required
@@ -136,14 +153,27 @@ def data_request():
         db.session.commit()
         if not(consent.user_id == current_user.id or check_on_duty()):
             flash(f"You do not have the permission to perform data requests at this time.", "danger")
+        else:
+            derived = Consent(
+                derived_from = consent.id,
+                user_id = current_user.user_id,
+                patient_id = consent.patient_id,
+                hip_id = consent.hip_id,
+                artefact = consent.artefact,
+                signature = consent.signature,
+                status = StatusType.ACCEPTED
+            )
+            db.session.add(derived)
+            db.session.commit()
         
         if not check_constraints(patient, artefact, signature, PURPOSE_MAP[form.purpose.data], current_user.user_type):
             flash(f"Invalid request, constraints not satisfied.", "danger")
         
         if consent.hip_id == int(app.config['HIP_ID']) or consent.status == StatusType.CACHED:
-            print("Local Access")
-            response = get_data(artefact.decode('utf-8'), signature, purpose = PURPOSE_MAP[form.purpose.data], hiu_id = app.config['HIU_ID'], user_id = current_user.id, consent = consent)
-            ret = response
+            data = get_data(artefact.decode('utf-8'), signature, purpose = PURPOSE_MAP[form.purpose.data], hiu_id = app.config['HIU_ID'], user_id = current_user.id, consent = consent)
+            ret = json.loads(json.dumps(data))
+            if not data:
+                return "Data not found"
         else:
             artefact = artefact.decode('utf-8')
             signature = base64.b64encode(signature).decode('utf-8')
@@ -158,13 +188,11 @@ def data_request():
             }
             response = requests.post('http://127.0.0.1:5000/get_data_request', json = data)
             if response.status_code != 201:
-                print(response.text)
                 return response.text
             
             ret = json.loads(response.text)
 
         if (not consent.hip_id == int(app.config['HIP_ID'])) and form.cache.data and (not consent.status == StatusType.CACHED):
-            print("Caching data")
             consent.status = StatusType.CACHED
             db.session.commit()
             artefact = json.loads(artefact)
@@ -172,7 +200,6 @@ def data_request():
                 encounter = Encounter(patient_id = consent.patient_id)
                 db.session.add(encounter)
                 db.session.commit()
-                print(ret)
                 for _, d in ret.items():
                     record = Record(encounter_id = encounter.id, patient_id = consent.patient_id, data = d[0], record_type = RECORD_TYPE_MAP[d[1]])
                     db.session.add(record)
@@ -236,24 +263,6 @@ def check_on_duty():
     return (current_user.user_type in [UserType.NURSE, UserType.RECEPTIONIST] and time(9, 0, 0, 0) <= datetime.now().time() <= time(21, 0, 0, 0))\
     or (current_user.user_type in [UserType.DOCTOR, UserType.PHARMACIST])
 
-def check_constraints(patient, artefact, signature, purpose, user_type):
-    h = SHA256.new(artefact)
-    verifier = pss.new(RSA.import_key(patient.public_key))
-    try:
-        verifier.verify(h, signature)
-    except:
-        return False
-    # print(purpose, record_type, user_type)
-    # print(artefact)
-    # time_from = datetime.strptime(artefact['time_from'], '%Y-%m-%d %H:%M:%S').date()
-    # time_to = datetime.strptime(artefact['time_to'], '%Y-%m-%d %H:%M:%S').date()
-    # if PURPOSE_MAP[artefact['purpose']] not in [purpose, PurposeType.ROUNDS]\
-    # and time_from <= datetime.now().date() <= time_to\
-    # and record_type in USERTYPE_RECORDTYPE_MAP[user_type]\
-    # and record_type in PURPOSETYPE_RECORDTYPE_MAP[purpose]\
-    # and purpose in USERTYPE_PURPOSETYPE_MAP[user_type]:
-    return True
-
 @app.route('/get_data_request', methods = ['POST'])
 def get_data_request():
     content = request.get_json()
@@ -277,22 +286,23 @@ def get_data(artefact, signature, purpose, hiu_id, user_id, consent=None):
     db.session.add(access_log)
     db.session.commit()
     
-    if consent and consent.status == StatusType.CACHED:
+    if consent and consent.status == StatusType.CACHED or hiu_id == app.config['HIU_ID']:
         data = dict()
         if consent.record_id:
             record = Record.query.filter_by(id = consent.record_id).first()
             if not record:
-                return make_response("Record not found", 404)
+                return data
+            
             data[record.id] = [record.data, INVERSE_RECORD_TYPE_MAP[record.record_type]]
         else:
             records = Record.query.filter_by(encounter_id = consent.encounter_id)
             if not records:
-                return make_response("Encounter not found", 404)
+                return data
             
             for record in records:
                 data[record.id] = [record.data, INVERSE_RECORD_TYPE_MAP[record.record_type]]
     
-        return make_response(json.dumps(data), 201)
+        return data
     
     data = dict()
     if 'record_id' in artefact.keys():

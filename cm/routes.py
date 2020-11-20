@@ -16,6 +16,10 @@ from utils import *
 
 @app.route('/get_consent_request', methods = ['POST'])
 def get_consent_request():
+    '''
+    Return an iterator that yields tuples of an index and an item of the
+    *sequence*. (And so on.)
+    '''
     content = request.get_json()
     time_from = datetime.strptime(content['time_from'], '%Y-%m-%d').date()
     time_to = datetime.strptime(content['time_to'], '%Y-%m-%d').date()
@@ -39,7 +43,6 @@ def get_consent_request():
                     )
     db.session.add(r)
     db.session.commit()
-    print("HAHAHA")
     return make_response("Received request", 201)
 
 @app.route('/login', methods = ['GET', 'POST'])
@@ -107,6 +110,7 @@ def accept_request(request_id):
         
         req = Consent_Request.query.filter_by(id = request_id).first()
         artefact = {
+            "hiu_id" : req.hiu_id,
             "hip_id" : req.hip_id,
             "purpose" : INVERSE_PURPOSE_MAP[req.purpose],
             "time_from" : str(req.time_from),

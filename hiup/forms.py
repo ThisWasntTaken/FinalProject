@@ -87,7 +87,7 @@ class DataRequestForm(FlaskForm):
 class CreateTeamForm(FlaskForm):
     consent_id = IntegerField('Consent ID', validators = [DataRequired()])
     id_1 = IntegerField('ID of member', validators = [DataRequired()])
-    id_2 = IntegerField('ID of member', validators = [DataRequired()])
+    id_2 = IntegerField('ID of member')
     submit = SubmitField('Create Team')
 
     def validate_consent_id(self, consent_id):
