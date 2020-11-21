@@ -21,7 +21,7 @@ class _Diagnosis(enum.Enum):
     DIAGNOSIS2 = "Diagnosis2"
 
 class _Rounds(enum.Enum):
-    ENTER_VITAL_PARAMETER = "Enter_Vital_Parameter"
+    ENTER_VITAL_PARAMETER = "Enter Vital Parameter"
     ROUNDS1 = "Rounds1"
 
 class PurposeType(enum.Enum):
@@ -49,20 +49,29 @@ PURPOSE_MAP = {
     "Surgery" : PurposeType.SURGERY,
     "Registration" : PurposeType.REGISTRATION,
     "Purchase" : PurposeType.PURCHASE,
-    "Rounds" : PurposeType.ROUNDS,
-    "Enter_Vital_Parameter" : PurposeType.ROUNDS.value.ENTER_VITAL_PARAMETER,
+    "Rounds" : PurposeType.ROUNDS
+}
+INVERSE_PURPOSE_MAP = {val : key for key, val in PURPOSE_MAP.items()}
+
+ACTIVITY_MAP = {
+    "Enter Vital Parameter" : PurposeType.ROUNDS.value.ENTER_VITAL_PARAMETER,
     "Rounds1" : PurposeType.ROUNDS.value.ROUNDS1,
     "Diagnosis1" : PurposeType.DIAGNOSIS.value.DIAGNOSIS1,
     "Diagnosis2" : PurposeType.DIAGNOSIS.value.DIAGNOSIS2,
     "Surgery1" : PurposeType.SURGERY.value.SURGERY1,
     "Surgery2" : PurposeType.SURGERY.value.SURGERY2,
     "InnerSurgery1" : PurposeType.SURGERY.value.SURGERY3.value.INNERSURGERY1,
-    "InnerSurgery2" : PurposeType.SURGERY.value.SURGERY3.value.INNERSURGERY2
+    "InnerSurgery2" : PurposeType.SURGERY.value.SURGERY3.value.INNERSURGERY2,
+    "Registration" : PurposeType.REGISTRATION,
+    "Purchase" : PurposeType.PURCHASE
 }
-INVERSE_PURPOSE_MAP = {val : key for key, val in PURPOSE_MAP.items()}
+INVERSE_ACTIVITY_MAP = {val : key for key, val in ACTIVITY_MAP.items()}
+
+SERIALIZATION_HELPER = {**PURPOSE_MAP, **ACTIVITY_MAP}
+INVERSE_SERIALIZATION_HELPER = {val : key for key, val in SERIALIZATION_HELPER.items()}
 
 USER_TYPE_MAP = {
-    "Admin" : UserType.ADMIN,
+    # "Admin" : UserType.ADMIN,
     "Doctor" : UserType.DOCTOR,
     "Nurse" : UserType.NURSE,
     "Receptionist" : UserType.RECEPTIONIST,

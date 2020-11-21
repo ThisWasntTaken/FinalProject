@@ -64,7 +64,6 @@ class Request_Log(db.Model):
     id = db.Column(db.Integer, primary_key = True)
     consent_id = db.Column(db.Integer, db.ForeignKey('consent.id'), nullable = False)
     time = db.Column(db.DateTime, nullable = False)
-    purpose = db.Column(db.Enum(PurposeType), nullable = False)
 
 class Access_Log(db.Model):
     id = db.Column(db.Integer, primary_key = True)
@@ -73,4 +72,3 @@ class Access_Log(db.Model):
     artefact = db.Column(db.BLOB, nullable = False)
     signature = db.Column(db.BLOB, nullable = False)
     time = db.Column(db.DateTime, nullable = False)
-    purpose = db.Column(db.Enum(PurposeType), nullable = False)

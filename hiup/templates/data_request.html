@@ -5,17 +5,17 @@
         {{ form.hidden_tag() }}
         <fieldset class="form-group">
             <div class="form-group">
-                {{ form.purpose.label(class="form-control-label") }}
+                {{ form.activity.label(class="form-control-label") }}
 
-                {% if form.purpose.errors %}
-                    {{ form.purpose(class="form-control form-control-lg is-invalid") }}
+                {% if form.activity.errors %}
+                    {{ form.activity(class="form-control form-control-lg is-invalid") }}
                     <div class="invalid-feedback">
-                        {% for error in form.purpose.errors %}
+                        {% for error in form.activity.errors %}
                             <span>{{ error }}</span>
                         {% endfor %}
                     </div>
                 {% else %}
-                    {{ form.purpose(class="form-control form-control-lg") }}
+                    {{ form.activity(class="form-control form-control-lg") }}
                 {% endif %}
             </div>
             <div class="form-group">

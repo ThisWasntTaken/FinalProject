@@ -86,7 +86,7 @@ def register():
 def home():
     if current_user.is_authenticated:
         requests = Consent_Request.query.filter_by(user_id = current_user.id, status = StatusType.ACTIVE)
-        return render_template('home.html', title = 'Home', requests = requests, inverse_purpose_map = INVERSE_PURPOSE_MAP)
+        return render_template('home.html', title = 'Home', requests = requests, inverse_serialization_helper = INVERSE_SERIALIZATION_HELPER)
     else:
         return redirect(url_for('login'))
 
@@ -95,7 +95,7 @@ def home():
 def view_approvals():
     if current_user.is_authenticated:
         requests = Consent_Request.query.filter_by(user_id = current_user.id, status = StatusType.ACCEPTED).filter(Consent_Request.time_to >= datetime.now().date())
-        return render_template('view_approvals.html', title = 'View Approvals', requests = requests, inverse_purpose_map = INVERSE_PURPOSE_MAP)
+        return render_template('view_approvals.html', title = 'View Approvals', requests = requests, inverse_serialization_helper = INVERSE_SERIALIZATION_HELPER)
     else:
         return redirect(url_for('login'))
 
@@ -112,7 +112,7 @@ def accept_request(request_id):
         artefact = {
             "hiu_id" : req.hiu_id,
             "hip_id" : req.hip_id,
-            "purpose" : INVERSE_PURPOSE_MAP[req.purpose],
+            "purpose" : INVERSE_SERIALIZATION_HELPER[req.purpose],
             "time_from" : str(req.time_from),
             "time_to" : str(req.time_to)
         }
@@ -126,8 +126,8 @@ def accept_request(request_id):
         signature = base64.b64encode(pss.new(private_key).sign(h)).decode('utf-8')
         data = {'consent_id' : req.request_id, 'hiu_id' : req.hiu_id, 'artefact' : artefact, 'signature' : signature, 'accept' : True}
         response = requests.post('http://127.0.0.1:5000/consent_listener', json = data)
-        flash(f'Your consent has been sent.', 'success')
         if response.status_code == 201:
+            flash(f'Your consent has been sent.', 'success')
             req.status = StatusType.ACCEPTED
             db.session.commit()
         elif response.status_code == 401:
@@ -141,7 +141,10 @@ def deny_request(request_id):
     req = Consent_Request.query.filter_by(id = request_id).first()
     data = {'consent_id' : req.request_id, 'hiu_id' : req.hiu_id, 'accept' : False}
     response = requests.post('http://127.0.0.1:5000/consent_listener', json = data)
-    flash(f'Your consent denial has been sent.', 'success')
-    req.status = StatusType.REVOKED
-    db.session.commit()
+    if response.status_code == 201:
+        flash(f'Your consent denial has been sent.', 'success')
+        req.status = StatusType.REVOKED
+        db.session.commit()
+    else:
+        flash(f'You consent denial was not sent. Please try again.', 'danger')
     return redirect(url_for('view_approvals'))

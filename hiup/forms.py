@@ -8,6 +8,7 @@ from utils import *
 
 USER_TYPE = USER_TYPE_MAP.keys()
 PURPOSE = PURPOSE_MAP.keys()
+ACTIVITY = ACTIVITY_MAP.keys()
 
 class RegistrationForm(FlaskForm):
     user_type = SelectField('Type of User', choices = [(i, i) for i in USER_TYPE], validators = [DataRequired()])
@@ -79,7 +80,7 @@ class ConsentForm(FlaskForm):
             raise ValidationError('Enter valid dates.')
 
 class DataRequestForm(FlaskForm):
-    purpose = SelectField('Purpose', choices = [(i, i) for i in PURPOSE], validators = [DataRequired()])
+    activity = SelectField('Activity', choices = [(i, i) for i in ACTIVITY], validators = [DataRequired()])
     consent_id = SelectField('Consent', validators = [DataRequired()])
     cache = BooleanField('Cache this data?')
     submit = SubmitField('Submit Data Request')

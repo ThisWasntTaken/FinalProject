@@ -12,7 +12,6 @@ def get_consent_request():
     content['hiu_name'] = hiu.name
     content['hip_name'] = hip.name
     response = requests.post('http://127.0.0.1:5001/get_consent_request', json = content)
-    print(response)
     return make_response(response.text, response.status_code)
 
 @app.route('/consent_listener', methods = ['POST'])
