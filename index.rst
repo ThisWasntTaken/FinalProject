@@ -12,6 +12,7 @@ Welcome to Privacy-Aware Dynamic Access Control for EHR's documentation!
 
    cm/index
    gateway/index
+   hiup/index
 
 Indices and tables
 ==================

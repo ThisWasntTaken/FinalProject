@@ -1,3 +1,7 @@
+"""
+API documentation for Consent Manager.
+"""
+
 from flask import render_template, url_for, flash, redirect, request, make_response, jsonify
 from cm.models import User, Consent_Request
 from cm.forms import RegistrationForm, LoginForm, PrivateKeyForm
@@ -14,18 +18,63 @@ import base64
 import os
 from utils import *
 
-@app.route('/get_consent_request', methods = ['POST'])
+@app.route('/consent_request', methods = ['POST'])
 def get_consent_request():
-    '''
-    Return an iterator that yields tuples of an index and an item of the
-    *sequence*. (And so on.)
-    '''
+    """
+    .. http:post:: /consent_request/
+
+        Add a consent request for a user (patient).
+
+        **Example request**:
+
+        .. sourcecode:: http
+
+            POST /get_consent_request/ HTTP/1.1
+            Host: http://127.0.0.1:5001/
+            Content-Type: application/json
+
+            {
+                "request_id": 1,
+                "health_id": "1",
+                "hiu_id": 1,
+                "requester_name": "Doctor1",
+                "hip_id": 2,
+                "purpose": "Diagnosis",
+                "time_from": "2020-11-21",
+                "time_to": "2020-11-23",
+                "encounter_id": 1,
+                "hiu_name": "Hiu1",
+                "hip_name": "Hip2"
+            }
+        
+        :<json int request_id: ID of the consent request at the HIU.
+        :<json string health_id: Health ID of the user (patient).
+        :<json int hiu_id: ID of the HIU.
+        :<json string requester_name: Name of the user requesting the consent.
+        :<json int hip_id: ID of the HIP.
+        :<json string purpose: Purpose of the consent request.
+        :<json string time_from: Date from which the consent is valid.
+        :<json string time_to: Date till which the consent is valid.
+        :<json int encounter_id: **optional** ID of the encounter at the HIP.
+        :<json int record_id: **optional** ID of the record at the HIP.
+        :<json int hiu_name: Name of the HIU.
+        :<json int hip_name: Name of the HIP.
+
+        **Example response**:
+
+        .. sourcecode:: http
+
+            HTTP/1.1 201 Received Request
+        
+        :statuscode 201: Received Request
+        :statuscode 400: User not found
+    """
     content = request.get_json()
     time_from = datetime.strptime(content['time_from'], '%Y-%m-%d').date()
     time_to = datetime.strptime(content['time_to'], '%Y-%m-%d').date()
     user = User.query.filter_by(health_id = content['health_id']).first()
     if not user:
-        return make_response("No such user", 400)
+        return make_response("", 400)
     
     r = Consent_Request(user_id = user.id,
                         request_id = content['request_id'],
@@ -43,7 +92,7 @@ def get_consent_request():
                     )
     db.session.add(r)
     db.session.commit()
-    return make_response("Received request", 201)
+    return make_response("", 201)
 
 @app.route('/login', methods = ['GET', 'POST'])
 def login():
@@ -104,7 +153,6 @@ def accept_request(request_id):
     form = PrivateKeyForm()
     if request.method == 'POST' and form.validate_on_submit():
         file_path = os.path.join(app.instance_path, '..', form.file.data.filename)
-        print(file_path)
         with open(file_path,'rb') as f:
             private_key = RSA.import_key(f.read())
         
@@ -113,8 +161,8 @@ def accept_request(request_id):
             "hiu_id" : req.hiu_id,
             "hip_id" : req.hip_id,
             "purpose" : INVERSE_SERIALIZATION_HELPER[req.purpose],
-            "time_from" : str(req.time_from),
-            "time_to" : str(req.time_to)
+            "time_from" : str(req.time_from.date()),
+            "time_to" : str(req.time_to.date())
         }
         if req.encounter_id:
             artefact["encounter_id"] = req.encounter_id
@@ -143,8 +191,14 @@ def deny_request(request_id):
     response = requests.post('http://127.0.0.1:5000/consent_listener', json = data)
     if response.status_code == 201:
         flash(f'Your consent denial has been sent.', 'success')
-        req.status = StatusType.REVOKED
-        db.session.commit()
+        if req.status == StatusType.ACCEPTED:
+            req.status = StatusType.REVOKED
+            db.session.commit()
+            return redirect(url_for('view_approvals'))
+        elif req.status == StatusType.ACTIVE:
+            req.status = StatusType.DENIED
+            db.session.commit()
+            return redirect(url_for('home'))
     else:
-        flash(f'You consent denial was not sent. Please try again.', 'danger')
-    return redirect(url_for('view_approvals'))
+        flash(f'Your consent denial was not sent. Please try again.', 'danger')
+        return redirect(url_for('view_approvals'))

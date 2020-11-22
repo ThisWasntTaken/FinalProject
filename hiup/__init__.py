@@ -13,12 +13,12 @@ def create_app(hiu_id, hip_id):
     app.config['SESSION_COOKIE_NAME'] = "cookie_" + str(hiu_id) + "_" + str(hip_id)
     return app
 
-parser = ArgumentParser()
-parser.add_argument('-hiu_id')
-parser.add_argument('-hip_id')
-args = parser.parse_args()
-hiu_id = args.hiu_id
-hip_id = args.hip_id
+# parser = ArgumentParser()
+# parser.add_argument('-hiu_id')
+# parser.add_argument('-hip_id')
+# args = parser.parse_args()
+hiu_id = 1
+hip_id = 1
 app = create_app(hiu_id, hip_id)
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)

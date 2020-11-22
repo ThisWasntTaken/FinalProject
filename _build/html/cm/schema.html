@@ -1,0 +1,162 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Schema &#8212; Privacy-Aware Dynamic Access Control for EHR 1.0 documentation</title>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Gateway" href="../gateway/index.html" />
+    <link rel="prev" title="API" href="api.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-cm.models">
+<span id="schema"></span><h1>Schema<a class="headerlink" href="#module-cm.models" title="Permalink to this headline">¶</a></h1>
+<p>Database models of Consent Manager.</p>
+<dl class="py class">
+<dt id="cm.models.Consent_Request">
+<em class="property">class </em><code class="sig-prename descclassname">cm.models.</code><code class="sig-name descname">Consent_Request</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cm.models.Consent_Request" title="Permalink to this definition">¶</a></dt>
+<dd><p>Details of a Consent Request.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>int</em>) – <strong>primary key</strong></p></li>
+<li><p><strong>request_id</strong> (<em>int</em>) – ID of the consent request at the HIU</p></li>
+<li><p><strong>user_id</strong> (<em>int</em>) – <strong>foreign key to User</strong> ID of the user (patient)</p></li>
+<li><p><strong>hiu_id</strong> (<em>int</em>) – ID of the HIU</p></li>
+<li><p><strong>hiu_name</strong> (<em>str</em>) – Name of the HIU</p></li>
+<li><p><strong>requester_name</strong> (<em>str</em>) – Name of the user requesting for consent</p></li>
+<li><p><strong>hip_id</strong> (<em>int</em>) – ID of the HIP</p></li>
+<li><p><strong>hip_name</strong> (<em>str</em>) – Name of the HIP</p></li>
+<li><p><strong>encounter_id</strong> (<em>int</em>) – <strong>nullable</strong> ID of the Encounter</p></li>
+<li><p><strong>record_id</strong> (<em>int</em>) – <strong>nullable</strong> ID of the Record</p></li>
+<li><p><strong>purpose</strong> (<em>Enum</em><em>(</em><em>utils.PurposeType</em><em>)</em>) – Purpose of the request</p></li>
+<li><p><strong>time_from</strong> (<em>DateTime</em>) – Time from which the consent is valid</p></li>
+<li><p><strong>time_to</strong> (<em>DateTime</em>) – Time till which the consent is valid</p></li>
+<li><p><strong>status</strong> (<em>Enum</em><em>(</em><em>utils.StatusType</em><em>)</em>) – Status of the request</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="cm.models.User">
+<em class="property">class </em><code class="sig-prename descclassname">cm.models.</code><code class="sig-name descname">User</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cm.models.User" title="Permalink to this definition">¶</a></dt>
+<dd><p>User (Patient) details and login information.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>int</em>) – <strong>primary key</strong></p></li>
+<li><p><strong>health_id</strong> (<em>str</em>) – Unique health id of the user</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – Name of the user</p></li>
+<li><p><strong>email</strong> (<em>str</em>) – Email of the user</p></li>
+<li><p><strong>phone</strong> (<em>str</em>) – Phone number of the user</p></li>
+<li><p><strong>password</strong> (<em>str</em>) – Encrypted password of the user</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">Privacy-Aware Dynamic Access Control for EHR</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Consent Manager</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="api.html">API</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Schema</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../gateway/index.html">Gateway</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hiup/index.html">HIUP</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Consent Manager</a><ul>
+      <li>Previous: <a href="api.html" title="previous chapter">API</a></li>
+      <li>Next: <a href="../gateway/index.html" title="next chapter">Gateway</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Ananth Shreekumar.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/cm/schema.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

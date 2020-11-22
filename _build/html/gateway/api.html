@@ -1,0 +1,294 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>API &#8212; Privacy-Aware Dynamic Access Control for EHR 1.0 documentation</title>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Schema" href="schema.html" />
+    <link rel="prev" title="Gateway" href="index.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-gateway.routes">
+<span id="api"></span><h1>API<a class="headerlink" href="#module-gateway.routes" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt id="gateway.routes.consent_listener">
+<code class="sig-prename descclassname">gateway.routes.</code><code class="sig-name descname">consent_listener</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#gateway.routes.consent_listener" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="http post">
+<dt id="post--consent_listener-">
+<code class="sig-name descname">POST </code><code class="sig-name descname">/consent_listener/</code><a class="headerlink" href="#post--consent_listener-" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pass a consent status and object to a HIU.</p>
+<p><strong>Example request</strong>:</p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="nf">POST</span> <span class="nn">/consent_listener/</span> <span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span>
+<span class="na">Host</span><span class="o">:</span> <span class="l">http://127.0.0.1:5000/</span>
+<span class="na">Content-Type</span><span class="o">:</span> <span class="l">application/json</span>
+
+<span class="p">{</span>
+    <span class="nt">&quot;consent_id&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="nt">&quot;hiu_id&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="nt">&quot;artefact&quot;</span><span class="p">:</span>
+        <span class="p">{</span>
+            <span class="nt">&quot;hiu_id&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="nt">&quot;hip_id&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="nt">&quot;purpose&quot;</span><span class="p">:</span> <span class="s2">&quot;Diagnosis&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;time_from&quot;</span><span class="p">:</span> <span class="s2">&quot;2020-11-21&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;time_to&quot;</span><span class="p">:</span> <span class="s2">&quot;2020-11-23&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;encounter_id&quot;</span><span class="p">:</span> <span class="mi">1</span>
+        <span class="p">},</span>
+    <span class="nt">&quot;signature&quot;</span><span class="p">:</span> <span class="s2">&quot;.....&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;accept&quot;</span><span class="p">:</span> <span class="kc">true</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Request JSON Object</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>consent_id</strong> (<em>int</em>) – ID of the consent request at the HIU.</p></li>
+<li><p><strong>hiu_id</strong> (<em>int</em>) – ID of the HIU.</p></li>
+<li><p><strong>artefact</strong> (<em>json</em>) – Consent Artefact.</p></li>
+<li><p><strong>signature</strong> (<em>string</em>) – Digital signature of the artefact.</p></li>
+<li><p><strong>accept</strong> (<em>bool</em>) – Status of the consent request.</p></li>
+</ul>
+</dd>
+</dl>
+<p><strong>Example response</strong>:</p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span> <span class="m">201</span> <span class="ne">Received Request</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Status Codes</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference external" href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.2.2">201 Created</a> – Received Request</p></li>
+<li><p><a class="reference external" href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.1">400 Bad Request</a> – HIU not found</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="gateway.routes.consent_request">
+<code class="sig-prename descclassname">gateway.routes.</code><code class="sig-name descname">consent_request</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#gateway.routes.consent_request" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="http post">
+<dt id="post--consent_request-">
+<code class="sig-name descname">POST </code><code class="sig-name descname">/consent_request/</code><a class="headerlink" href="#post--consent_request-" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pass a consent request to the Consent Manager.</p>
+<p><strong>Example request</strong>:</p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="nf">POST</span> <span class="nn">/consent_request/</span> <span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span>
+<span class="na">Host</span><span class="o">:</span> <span class="l">http://127.0.0.1:5000/</span>
+<span class="na">Content-Type</span><span class="o">:</span> <span class="l">application/json</span>
+
+<span class="p">{</span>
+    <span class="nt">&quot;request_id&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="nt">&quot;health_id&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;hiu_id&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="nt">&quot;requester_name&quot;</span><span class="p">:</span> <span class="s2">&quot;Doctor1&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;hip_id&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="nt">&quot;purpose&quot;</span><span class="p">:</span> <span class="s2">&quot;Diagnosis&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;time_from&quot;</span><span class="p">:</span> <span class="s2">&quot;2020-11-21&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;time_to&quot;</span><span class="p">:</span> <span class="s2">&quot;2020-11-23&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;encounter_id&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Request JSON Object</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>request_id</strong> (<em>int</em>) – ID of the consent request at the HIU.</p></li>
+<li><p><strong>health_id</strong> (<em>string</em>) – Health ID of the user (patient).</p></li>
+<li><p><strong>hiu_id</strong> (<em>int</em>) – ID of the HIU.</p></li>
+<li><p><strong>requester_name</strong> (<em>string</em>) – Name of the user requesting the consent.</p></li>
+<li><p><strong>hip_id</strong> (<em>int</em>) – ID of the HIP.</p></li>
+<li><p><strong>purpose</strong> (<em>string</em>) – Purpose of the consent request.</p></li>
+<li><p><strong>time_from</strong> (<em>string</em>) – Date from which the consent is valid.</p></li>
+<li><p><strong>time_to</strong> (<em>string</em>) – Date till which the consent is valid.</p></li>
+<li><p><strong>encounter_id</strong> (<em>int</em>) – <strong>optional</strong> ID of the encounter at the HIP.</p></li>
+<li><p><strong>record_id</strong> (<em>int</em>) – <strong>optional</strong> ID of the record at the HIP.</p></li>
+</ul>
+</dd>
+</dl>
+<p><strong>Example response</strong>:</p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span> <span class="m">201</span> <span class="ne">Received Request</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Status Codes</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference external" href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.2.2">201 Created</a> – Received Request</p></li>
+<li><p><a class="reference external" href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.1">400 Bad Request</a> – User not found</p></li>
+<li><p><a class="reference external" href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.1">400 Bad Request</a> – HIU not found</p></li>
+<li><p><a class="reference external" href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.1">400 Bad Request</a> – HIP not found</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="gateway.routes.get_data_request">
+<code class="sig-prename descclassname">gateway.routes.</code><code class="sig-name descname">get_data_request</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#gateway.routes.get_data_request" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="http post">
+<dt id="post--consent_listener-">
+<code class="sig-name descname">POST </code><code class="sig-name descname">/consent_listener/</code><a class="headerlink" href="#post--consent_listener-" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pass a consent status and object to a HIU.</p>
+<p><strong>Example request</strong>:</p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="nf">POST</span> <span class="nn">/consent_listener/</span> <span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span>
+<span class="na">Host</span><span class="o">:</span> <span class="l">http://127.0.0.1:5000/</span>
+<span class="na">Content-Type</span><span class="o">:</span> <span class="l">application/json</span>
+
+<span class="p">{</span>
+    <span class="nt">&quot;artefact&quot;</span><span class="p">:</span> 
+        <span class="p">{</span>
+            <span class="nt">&quot;hiu_id&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="nt">&quot;hip_id&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="nt">&quot;purpose&quot;</span><span class="p">:</span> <span class="s2">&quot;Diagnosis&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;time_from&quot;</span><span class="p">:</span> <span class="s2">&quot;2020-11-21&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;time_to&quot;</span><span class="p">:</span> <span class="s2">&quot;2020-11-23&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;encounter_id&quot;</span><span class="p">:</span> <span class="mi">1</span>
+        <span class="p">},</span>
+    <span class="nt">&quot;signature&quot;</span><span class="p">:</span> <span class="s2">&quot;.....&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;health_id&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;hip_id&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="nt">&quot;activity&quot;</span><span class="p">:</span> <span class="s2">&quot;Diagnosis1&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;hiu_id&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="nt">&quot;user_id&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="nt">&quot;user_type&quot;</span><span class="p">:</span> <span class="s2">&quot;Doctor&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Request JSON Object</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>artefact</strong> (<em>json</em>) – Consent Artefact.</p></li>
+<li><p><strong>signature</strong> (<em>string</em>) – Digital signature of the artefact.</p></li>
+<li><p><strong>health_id</strong> (<em>string</em>) – Health ID of the user (patient).</p></li>
+<li><p><strong>hip_id</strong> (<em>int</em>) – ID of the HIP.</p></li>
+<li><p><strong>activity</strong> (<em>string</em>) – Activity that requires data.</p></li>
+<li><p><strong>hiu_id</strong> (<em>int</em>) – ID of the HIU.</p></li>
+<li><p><strong>user_id</strong> (<em>int</em>) – ID of the user who is requesting data.</p></li>
+<li><p><strong>user_type</strong> (<em>string</em>) – UserType of the user who is requesting data.</p></li>
+</ul>
+</dd>
+</dl>
+<p><strong>Example response</strong>:</p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span> <span class="m">201</span> <span class="ne">Received Request</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Status Codes</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference external" href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.2.2">201 Created</a> – Received Request</p></li>
+<li><p><a class="reference external" href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.1">400 Bad Request</a> – HIU not found</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">Privacy-Aware Dynamic Access Control for EHR</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../cm/index.html">Consent Manager</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Gateway</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="schema.html">Schema</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../hiup/index.html">HIUP</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Gateway</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Gateway</a></li>
+      <li>Next: <a href="schema.html" title="next chapter">Schema</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Ananth Shreekumar.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/gateway/api.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

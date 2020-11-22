@@ -15,8 +15,8 @@
     <script src="../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Gateway Documentation" href="../gateway/index.html" />
-    <link rel="prev" title="Consent Manager Documentation" href="index.html" />
+    <link rel="next" title="Schema" href="schema.html" />
+    <link rel="prev" title="Consent Manager" href="index.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
@@ -35,11 +35,66 @@
             
   <div class="section" id="module-cm.routes">
 <span id="api"></span><h1>API<a class="headerlink" href="#module-cm.routes" title="Permalink to this headline">¶</a></h1>
+<p>API documentation for Consent Manager.</p>
 <dl class="py function">
 <dt id="cm.routes.get_consent_request">
 <code class="sig-prename descclassname">cm.routes.</code><code class="sig-name descname">get_consent_request</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cm.routes.get_consent_request" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return an iterator that yields tuples of an index and an item of the
-<em>sequence</em>. (And so on.)</p>
+<dd><dl class="http post">
+<dt id="post--consent_request-">
+<code class="sig-name descname">POST </code><code class="sig-name descname">/consent_request/</code><a class="headerlink" href="#post--consent_request-" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a consent request for a user (patient).</p>
+<p><strong>Example request</strong>:</p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="nf">POST</span> <span class="nn">/get_consent_request/</span> <span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span>
+<span class="na">Host</span><span class="o">:</span> <span class="l">http://127.0.0.1:5001/</span>
+<span class="na">Content-Type</span><span class="o">:</span> <span class="l">application/json</span>
+
+<span class="p">{</span>
+    <span class="nt">&quot;request_id&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="nt">&quot;health_id&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;hiu_id&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="nt">&quot;requester_name&quot;</span><span class="p">:</span> <span class="s2">&quot;Doctor1&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;hip_id&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="nt">&quot;purpose&quot;</span><span class="p">:</span> <span class="s2">&quot;Diagnosis&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;time_from&quot;</span><span class="p">:</span> <span class="s2">&quot;2020-11-21&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;time_to&quot;</span><span class="p">:</span> <span class="s2">&quot;2020-11-23&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;encounter_id&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="nt">&quot;hiu_name&quot;</span><span class="p">:</span> <span class="s2">&quot;Hiu1&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;hip_name&quot;</span><span class="p">:</span> <span class="s2">&quot;Hip2&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Request JSON Object</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>request_id</strong> (<em>int</em>) – ID of the consent request at the HIU.</p></li>
+<li><p><strong>health_id</strong> (<em>string</em>) – Health ID of the user (patient).</p></li>
+<li><p><strong>hiu_id</strong> (<em>int</em>) – ID of the HIU.</p></li>
+<li><p><strong>requester_name</strong> (<em>string</em>) – Name of the user requesting the consent.</p></li>
+<li><p><strong>hip_id</strong> (<em>int</em>) – ID of the HIP.</p></li>
+<li><p><strong>purpose</strong> (<em>string</em>) – Purpose of the consent request.</p></li>
+<li><p><strong>time_from</strong> (<em>string</em>) – Date from which the consent is valid.</p></li>
+<li><p><strong>time_to</strong> (<em>string</em>) – Date till which the consent is valid.</p></li>
+<li><p><strong>encounter_id</strong> (<em>int</em>) – <strong>optional</strong> ID of the encounter at the HIP.</p></li>
+<li><p><strong>record_id</strong> (<em>int</em>) – <strong>optional</strong> ID of the record at the HIP.</p></li>
+<li><p><strong>hiu_name</strong> (<em>int</em>) – Name of the HIU.</p></li>
+<li><p><strong>hip_name</strong> (<em>int</em>) – Name of the HIP.</p></li>
+</ul>
+</dd>
+</dl>
+<p><strong>Example response</strong>:</p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span> <span class="m">201</span> <span class="ne">Received Request</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Status Codes</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference external" href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.2.2">201 Created</a> – Received Request</p></li>
+<li><p><a class="reference external" href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.1">400 Bad Request</a> – User not found</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 </div>
@@ -63,20 +118,22 @@
 <h3>Navigation</h3>
 <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="index.html">Consent Manager Documentation</a><ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Consent Manager</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="schema.html">Schema</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../gateway/index.html">Gateway Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gateway/index.html">Gateway</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hiup/index.html">HIUP</a></li>
 </ul>
 
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="../index.html">Documentation overview</a><ul>
-  <li><a href="index.html">Consent Manager Documentation</a><ul>
-      <li>Previous: <a href="index.html" title="previous chapter">Consent Manager Documentation</a></li>
-      <li>Next: <a href="../gateway/index.html" title="next chapter">Gateway Documentation</a></li>
+  <li><a href="index.html">Consent Manager</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Consent Manager</a></li>
+      <li>Next: <a href="schema.html" title="next chapter">Schema</a></li>
   </ul></li>
   </ul></li>
 </ul>

@@ -1,0 +1,236 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Schema &#8212; Privacy-Aware Dynamic Access Control for EHR 1.0 documentation</title>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="API" href="api.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-hiup.models">
+<span id="schema"></span><h1>Schema<a class="headerlink" href="#module-hiup.models" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt id="hiup.models.Access_Log">
+<em class="property">class </em><code class="sig-prename descclassname">hiup.models.</code><code class="sig-name descname">Access_Log</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#hiup.models.Access_Log" title="Permalink to this definition">¶</a></dt>
+<dd><p>Log of data access.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>int</em>) – <strong>primary key</strong></p></li>
+<li><p><strong>hiu_id</strong> (<em>int</em>) – ID of the HIU</p></li>
+<li><p><strong>user_id</strong> (<em>int</em>) – <strong>foreign key to User</strong> ID of the user who requested data</p></li>
+<li><p><strong>artefact</strong> (<em>BLOB</em>) – Consent artefact used to access data</p></li>
+<li><p><strong>signature</strong> (<em>BLOB</em>) – Digital signature of the consent artefact for non-repudiability</p></li>
+<li><p><strong>time</strong> (<em>DateTime</em>) – Time of data access</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="hiup.models.Consent">
+<em class="property">class </em><code class="sig-prename descclassname">hiup.models.</code><code class="sig-name descname">Consent</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#hiup.models.Consent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Consents asked for, accepted, revoked, or denied.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>int</em>) – <strong>primary key</strong></p></li>
+<li><p><strong>user_id</strong> (<em>int</em>) – <strong>foreign key to User</strong> ID of the user to whom consent was given</p></li>
+<li><p><strong>patient_id</strong> (<em>int</em>) – <strong>foreign key to Patient</strong> ID of the patient</p></li>
+<li><p><strong>hip_id</strong> (<em>int</em>) – ID of the HIP</p></li>
+<li><p><strong>artefact</strong> (<em>BLOB</em>) – Consent artefact</p></li>
+<li><p><strong>signature</strong> (<em>BLOB</em>) – Digital signature of the consent artefact</p></li>
+<li><p><strong>status</strong> (<em>Enum</em><em>(</em><em>utils.StatusType</em><em>)</em>) – status of consent</p></li>
+<li><p><strong>encounter_id</strong> (<em>int</em>) – <strong>nullable, foreign key to Encounter</strong> ID of cached encounter</p></li>
+<li><p><strong>record_id</strong> (<em>int</em>) – <strong>nullable, foreign key to Record</strong> ID of cached record</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="hiup.models.Encounter">
+<em class="property">class </em><code class="sig-prename descclassname">hiup.models.</code><code class="sig-name descname">Encounter</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#hiup.models.Encounter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Encounter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>int</em>) – <strong>primary key</strong></p></li>
+<li><p><strong>patient_id</strong> (<em>int</em>) – <strong>foreign key to Patient</strong> ID of the patient</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="hiup.models.Patient">
+<em class="property">class </em><code class="sig-prename descclassname">hiup.models.</code><code class="sig-name descname">Patient</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#hiup.models.Patient" title="Permalink to this definition">¶</a></dt>
+<dd><p>User (Patient) details and login information.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>int</em>) – <strong>primary key</strong></p></li>
+<li><p><strong>health_id</strong> (<em>str</em>) – Unique health id of the user</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – Name of the user</p></li>
+<li><p><strong>email</strong> (<em>str</em>) – Email of the user</p></li>
+<li><p><strong>public_key</strong> (<em>BLOB</em>) – Public key of the user</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="hiup.models.Record">
+<em class="property">class </em><code class="sig-prename descclassname">hiup.models.</code><code class="sig-name descname">Record</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#hiup.models.Record" title="Permalink to this definition">¶</a></dt>
+<dd><p>A data record.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>int</em>) – <strong>primary key</strong></p></li>
+<li><p><strong>encounter_id</strong> (<em>int</em>) – <strong>foreign key to Patient</strong> ID of the patient</p></li>
+<li><p><strong>patient_id</strong> (<em>int</em>) – <strong>foreign key to Patient</strong> ID of the patient</p></li>
+<li><p><strong>data</strong> (<em>str</em>) – data</p></li>
+<li><p><strong>Enum</strong><strong>(</strong><strong>utils.RecordType</strong><strong>)</strong> – Type of data</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="hiup.models.Request_Log">
+<em class="property">class </em><code class="sig-prename descclassname">hiup.models.</code><code class="sig-name descname">Request_Log</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#hiup.models.Request_Log" title="Permalink to this definition">¶</a></dt>
+<dd><p>Log of data request.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>int</em>) – <strong>primary key</strong></p></li>
+<li><p><strong>consent_id</strong> (<em>int</em>) – <strong>foreign key to Consent</strong> ID of the consent used for data request</p></li>
+<li><p><strong>time</strong> (<em>DateTime</em>) – Time of data request</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="hiup.models.User">
+<em class="property">class </em><code class="sig-prename descclassname">hiup.models.</code><code class="sig-name descname">User</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#hiup.models.User" title="Permalink to this definition">¶</a></dt>
+<dd><p>User (Patient) details and login information.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>int</em>) – <strong>primary key</strong></p></li>
+<li><p><strong>digi_doctor_id</strong> (<em>str</em>) – <strong>nullable</strong> Unique digi doctor id of the user</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – Name of the user</p></li>
+<li><p><strong>email</strong> (<em>str</em>) – Email of the user</p></li>
+<li><p><strong>phone</strong> (<em>str</em>) – Phone number of the user</p></li>
+<li><p><strong>user_type</strong> (<em>Enum</em><em>(</em><em>utils.UserType</em><em>)</em>) – Type of the user</p></li>
+<li><p><strong>password</strong> (<em>str</em>) – Encrypted password of the user</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">Privacy-Aware Dynamic Access Control for EHR</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../cm/index.html">Consent Manager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gateway/index.html">Gateway</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">HIUP</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="api.html">API</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Schema</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">HIUP</a><ul>
+      <li>Previous: <a href="api.html" title="previous chapter">API</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Ananth Shreekumar.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/hiup/schema.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

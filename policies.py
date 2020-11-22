@@ -11,8 +11,8 @@ except:
     print("Could not load activity rules, generate them first by running generate_activity_rules.py")
 
 USERTYPE_RECORDTYPE_MAP = {
-    UserType.DOCTOR :                                           [RecordType.REGISTRATION, RecordType.BLOOD_TEST, RecordType.PRESCRIPTION, RecordType.MRI],
     # UserType.ADMIN :                                          [],
+    UserType.DOCTOR :                                           [RecordType.REGISTRATION, RecordType.BLOOD_TEST, RecordType.PRESCRIPTION, RecordType.MRI],
     UserType.NURSE :                                            [RecordType.BLOOD_TEST, RecordType.PRESCRIPTION],
     UserType.RECEPTIONIST :                                     [RecordType.REGISTRATION],
     UserType.PHARMACIST :                                       [RecordType.PRESCRIPTION]

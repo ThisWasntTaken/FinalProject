@@ -111,9 +111,9 @@ def consent_request():
         db.session.commit()
         data = {'request_id' : consent.id,
                 'health_id' : form.health_id.data,
-                'hiu_id' : app.config['HIU_ID'],
+                'hiu_id' : int(app.config['HIU_ID']),
                 'requester_name' : current_user.name,
-                'hip_id' : form.hip_id.data,
+                'hip_id' : int(form.hip_id.data),
                 'purpose' : form.purpose.data,
                 'time_from' : str(form.time_from.data),
                 'time_to' : str(form.time_to.data)
@@ -122,7 +122,7 @@ def consent_request():
             data['encounter_id'] = form.encounter_id.data
         if form.record_id.data:
             data['record_id'] = form.record_id.data
-        response = requests.post('http://127.0.0.1:5000/get_consent_request', json = data)
+        response = requests.post('http://127.0.0.1:5000/consent_request', json = data)
         if response.status_code == 201:
             flash(f'Your consent request has been sent to the patient.', 'success')
             return redirect(url_for('home'))
@@ -137,6 +137,7 @@ def consent_request():
 @app.route('/consent_listener', methods = ['POST'])
 def consent_listener():
     content = request.get_json()
+    print(content)
     if content['accept']:
         consent = Consent.query.filter_by(id = content['consent_id']).first()
         patient = Patient.query.filter_by(id = consent.patient_id).first()
@@ -174,8 +175,8 @@ def check_constraints(patient, artefact, signature, activity, user_type):
         return False
     
     artefact = json.loads(artefact)
-    time_from = datetime.strptime(artefact['time_from'], '%Y-%m-%d %H:%M:%S').date()
-    time_to = datetime.strptime(artefact['time_to'], '%Y-%m-%d %H:%M:%S').date()
+    time_from = datetime.strptime(artefact['time_from'], '%Y-%m-%d').date()
+    time_to = datetime.strptime(artefact['time_to'], '%Y-%m-%d').date()
     print(activity, PURPOSE_ACTIVITY_MAP[PURPOSE_MAP[artefact['purpose']]])
     return activity in PURPOSE_ACTIVITY_MAP[PURPOSE_MAP[artefact['purpose']]]\
     and time_from <= datetime.now().date() <= time_to\
@@ -207,7 +208,7 @@ def data_request():
             return render_template('data_request.html', title = 'Consent', form = form)
         
         if consent.hip_id == int(app.config['HIP_ID']) or consent.status == StatusType.CACHED:
-            data = get_data(artefact.decode('utf-8'), signature, activity = SERIALIZATION_HELPER[form.activity.data], hiu_id = app.config['HIU_ID'], user_id = current_user.id, consent = consent)
+            data = get_data(artefact.decode('utf-8'), signature, activity = SERIALIZATION_HELPER[form.activity.data], hiu_id = int(app.config['HIU_ID']), user_id = current_user.id, consent = consent)
             ret = json.loads(json.dumps(data))
             if not data:
                 flash(f"Data not found.", "danger")
@@ -220,7 +221,7 @@ def data_request():
                     'health_id' : patient.health_id,
                     'hip_id' : consent.hip_id,
                     'activity' : form.activity.data,
-                    'hiu_id' : app.config['HIU_ID'],
+                    'hiu_id' : int(app.config['HIU_ID']),
                     'user_id' : current_user.id,
                     'user_type' : INVERSE_USER_TYPE_MAP[current_user.user_type]
             }
@@ -287,7 +288,7 @@ def get_data(artefact, signature, activity, hiu_id, user_id, consent=None):
     db.session.add(access_log)
     db.session.commit()
     
-    if consent and consent.status == StatusType.CACHED or hiu_id == app.config['HIU_ID']:
+    if consent and consent.status == StatusType.CACHED or hiu_id == int(app.config['HIU_ID']):
         data = dict()
         if consent.record_id:
             record = Record.query.filter_by(id = consent.record_id).first()

@@ -1,5 +1,9 @@
-Gateway Documentation
-=====================
+Gateway
+=======
 
-.. automodule:: gateway.routes
-   :no-members:
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
+   api
+   schema
