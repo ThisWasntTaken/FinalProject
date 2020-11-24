@@ -1,3 +1,4 @@
+from policies import PURPOSE_STATE_MAP
 from flask_wtf import FlaskForm
 from wtforms import IntegerField, StringField, PasswordField, SubmitField, BooleanField, RadioField, SelectField
 from wtforms.fields.html5 import DateField
@@ -5,10 +6,12 @@ from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationE
 from hiup.models import User, Patient, Consent
 from hiup import bcrypt
 from utils import *
+import json
 
 USER_TYPE = USER_TYPE_MAP.keys()
 PURPOSE = PURPOSE_MAP.keys()
 ACTIVITY = ACTIVITY_MAP.keys()
+STATE = STATE_MAP.keys()
 
 class RegistrationForm(FlaskForm):
     user_type = SelectField('Type of User', choices = [(i, i) for i in USER_TYPE], validators = [DataRequired()])
@@ -58,7 +61,7 @@ class ConsentForm(FlaskForm):
     time_to = DateField('Time till consent is active', format = '%Y-%m-%d', validators = [DataRequired()])
     submit = SubmitField('Submit Consent Request')
 
-    def validate(self, extra_validators=None):
+    def validate(self, extra_validators = None):
         if super().validate(extra_validators):
 
             if not (self.encounter_id.data or self.record_id.data):
@@ -84,6 +87,23 @@ class DataRequestForm(FlaskForm):
     consent_id = SelectField('Consent', validators = [DataRequired()])
     cache = BooleanField('Cache this data?')
     submit = SubmitField('Submit Data Request')
+
+class UpdateStateForm(FlaskForm):
+    consent_id = SelectField('Consent', validators = [DataRequired()])
+    state = SelectField('State', choices = [(i, i) for i in STATE], validators = [DataRequired()])
+    submit = SubmitField('Update State')
+
+    def validate(self, extra_validators = None):
+        if super().validate(extra_validators):
+            consent = Consent.query.filter_by(id=self.consent_id.data).first()
+            purpose = json.loads(consent.artefact)['purpose']
+            if STATE_MAP[self.state.data] not in PURPOSE_STATE_MAP[PURPOSE_MAP[purpose]]:
+                self.state.errors.append('That state is not valid for ' + purpose + ".")
+                return False
+            
+            return True
+        
+        return False
 
 class CreateTeamForm(FlaskForm):
     consent_id = IntegerField('Consent ID', validators = [DataRequired()])

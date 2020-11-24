@@ -120,7 +120,7 @@ def consent_listener():
 @app.route('/get_data_request', methods = ['POST'])
 def get_data_request():
     """
-    .. http:post:: /consent_listener/
+    .. http:post:: /get_data_request/
 
         Pass a consent status and object to a HIU.
 
@@ -128,7 +128,7 @@ def get_data_request():
 
         .. sourcecode:: http
 
-            POST /consent_listener/ HTTP/1.1
+            POST /get_data_request/ HTTP/1.1
             Host: http://127.0.0.1:5000/
             Content-Type: application/json
 
@@ -170,7 +170,6 @@ def get_data_request():
         :statuscode 400: HIU not found
     """
     content = request.get_json()
-    print(content)
     hip = Hip.query.filter_by(id = content['hip_id']).first()
     if not hip:
         return make_response("", 400)

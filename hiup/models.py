@@ -69,12 +69,13 @@ class Consent(db.Model):
     :param int record_id: **nullable, foreign key to Record** ID of cached record
     """
     id = db.Column(db.Integer, primary_key = True)
-    derived_from = db.Column(db.Integer, db.ForeignKey('consent.id'), nullable = True)
+    # derived_from = db.Column(db.Integer, db.ForeignKey('consent.id'), nullable = True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable = False)
     patient_id = db.Column(db.Integer, db.ForeignKey('patient.id'), nullable = False)
     hip_id = db.Column(db.Integer, nullable = False)
     artefact = db.Column(db.BLOB, nullable = True)
     signature = db.Column(db.BLOB, nullable = True)
+    state = db.Column(db.Enum(State), nullable = False)
     status = db.Column(db.Enum(StatusType), nullable = False)
     encounter_id = db.Column(db.Integer, db.ForeignKey('encounter.id'), nullable = True)
     record_id = db.Column(db.Integer, db.ForeignKey('record.id'), nullable = True)
@@ -120,10 +121,13 @@ class Request_Log(db.Model):
 
     :param int id: **primary key**
     :param int consent_id: **foreign key to Consent** ID of the consent used for data request
+    :param str activity: Activity that for data request
     :param DateTime time: Time of data request
     """
     id = db.Column(db.Integer, primary_key = True)
     consent_id = db.Column(db.Integer, db.ForeignKey('consent.id'), nullable = False)
+    #TODO I cannot find a way to enumerate activity types using db.Enum. I have settled on using string.
+    activity = db.Column(db.String(100), nullable = False)
     time = db.Column(db.DateTime, nullable = False)
 
 class Access_Log(db.Model):
@@ -135,6 +139,7 @@ class Access_Log(db.Model):
     :param int user_id: **foreign key to User** ID of the user who requested data
     :param BLOB artefact: Consent artefact used to access data
     :param BLOB signature: Digital signature of the consent artefact for non-repudiability
+    :param str activity: Activity that for data access
     :param DateTime time: Time of data access
     """
     id = db.Column(db.Integer, primary_key = True)
@@ -142,4 +147,6 @@ class Access_Log(db.Model):
     user_id = db.Column(db.Integer, nullable = False)
     artefact = db.Column(db.BLOB, nullable = False)
     signature = db.Column(db.BLOB, nullable = False)
+    #TODO I cannot find a way to enumerate activity types using db.Enum. I have settled on using string.
+    activity = db.Column(db.String(100), nullable = False)
     time = db.Column(db.DateTime, nullable = False)

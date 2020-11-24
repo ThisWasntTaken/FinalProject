@@ -1,6 +1,6 @@
 from flask import render_template, url_for, flash, redirect, request, make_response, jsonify
 from hiup.models import User, Patient, Consent, Encounter, Record, Request_Log, Access_Log
-from hiup.forms import RegistrationForm, LoginForm, ConsentForm, DataRequestForm, CreateTeamForm
+from hiup.forms import RegistrationForm, LoginForm, ConsentForm, DataRequestForm, CreateTeamForm, UpdateStateForm
 from hiup import app, db, bcrypt
 from flask_login import login_user, current_user, logout_user, login_required
 import requests
@@ -97,7 +97,7 @@ def consent_request():
     if request.method == 'POST' and form.validate_on_submit():
         patient = Patient.query.filter_by(health_id = form.health_id.data).first()
         consent = Consent(
-                            derived_from = None,
+                            # derived_from = None,
                             user_id = current_user.id,
                             patient_id = patient.id,
                             hip_id = form.hip_id.data,
@@ -105,7 +105,8 @@ def consent_request():
                             signature = None,
                             status = StatusType.ACTIVE,
                             encounter_id = form.encounter_id.data,
-                            record_id = form.record_id.data
+                            record_id = form.record_id.data,
+                            state = PURPOSE_STATE_MAP[PURPOSE_MAP[form.purpose.data]][0]
                         )
         db.session.add(consent)
         db.session.commit()
@@ -137,7 +138,6 @@ def consent_request():
 @app.route('/consent_listener', methods = ['POST'])
 def consent_listener():
     content = request.get_json()
-    print(content)
     if content['accept']:
         consent = Consent.query.filter_by(id = content['consent_id']).first()
         patient = Patient.query.filter_by(id = consent.patient_id).first()
@@ -158,15 +158,15 @@ def consent_listener():
         consent = Consent.query.filter_by(id = content['consent_id']).first()
         if consent.status == StatusType.ACCEPTED:
             consent.status = StatusType.REVOKED
-            derived_consents = Consent.query.filter_by(derived_from = consent.id)
-            for d_c in derived_consents:
-                d_c.status = StatusType.REVOKED
+            # derived_consents = Consent.query.filter_by(derived_from = consent.id)
+            # for d_c in derived_consents:
+            #     d_c.status = StatusType.REVOKED
         else:
             consent.status = StatusType.DENIED
         db.session.commit()
         return make_response("Received consent status", 201)
 
-def check_constraints(patient, artefact, signature, activity, user_type):
+def check_constraints(patient, artefact, signature, activity, user_type, state):
     h = SHA256.new(artefact)
     verifier = pss.new(RSA.import_key(patient.public_key))
     try:
@@ -177,8 +177,8 @@ def check_constraints(patient, artefact, signature, activity, user_type):
     artefact = json.loads(artefact)
     time_from = datetime.strptime(artefact['time_from'], '%Y-%m-%d').date()
     time_to = datetime.strptime(artefact['time_to'], '%Y-%m-%d').date()
-    print(activity, PURPOSE_ACTIVITY_MAP[PURPOSE_MAP[artefact['purpose']]])
-    return activity in PURPOSE_ACTIVITY_MAP[PURPOSE_MAP[artefact['purpose']]]\
+    return state in USERTYPE_STATE_MAP[user_type]\
+    and activity in PURPOSE_ACTIVITY_MAP[PURPOSE_MAP[artefact['purpose']]]\
     and time_from <= datetime.now().date() <= time_to\
     and activity in USERTYPE_ACTIVITY_MAP[user_type]
 
@@ -190,8 +190,7 @@ def check_on_duty():
 @login_required
 def data_request():
     form = DataRequestForm()
-    consents = Consent.query.filter_by(status = StatusType.ACCEPTED).all()
-    consents += Consent.query.filter_by(status = StatusType.CACHED).all()
+    consents = Consent.query.filter(Consent.status.in_([StatusType.ACCEPTED, StatusType.CACHED])).all()
     form.consent_id.choices = [(i.id, str(i)) for i in consents]
     if request.method == 'POST' and form.validate_on_submit():
         consent = Consent.query.filter_by(id = int(form.consent_id.data)).first()
@@ -200,15 +199,15 @@ def data_request():
         signature = consent.signature
         valid_records = dict()
         ret = None
-        request_log = Request_Log(consent_id = consent.id, time = datetime.now())
+        request_log = Request_Log(consent_id = consent.id, activity = form.activity.data, time = datetime.now())
         db.session.add(request_log)
         db.session.commit()
-        if not(consent.user_id == current_user.id or check_on_duty()) or not check_constraints(patient, artefact, signature, SERIALIZATION_HELPER[form.activity.data], current_user.user_type):
+        if not(consent.user_id == current_user.id or check_on_duty()) or not check_constraints(patient, artefact, signature, SERIALIZATION_HELPER[form.activity.data], current_user.user_type, consent.state):
             flash(f"Invalid request, constraints not met.", "danger")
             return render_template('data_request.html', title = 'Consent', form = form)
         
         if consent.hip_id == int(app.config['HIP_ID']) or consent.status == StatusType.CACHED:
-            data = get_data(artefact.decode('utf-8'), signature, activity = SERIALIZATION_HELPER[form.activity.data], hiu_id = int(app.config['HIU_ID']), user_id = current_user.id, consent = consent)
+            data = get_data(artefact.decode('utf-8'), signature, activity = form.activity.data, hiu_id = int(app.config['HIU_ID']), user_id = current_user.id, consent = consent)
             ret = json.loads(json.dumps(data))
             if not data:
                 flash(f"Data not found.", "danger")
@@ -256,7 +255,7 @@ def data_request():
                 db.session.commit()
         
         for key, value in ret.items():
-            if RECORD_TYPE_MAP[value[1]] in USERTYPE_RECORDTYPE_MAP[current_user.user_type]:
+            if RECORD_TYPE_MAP[value[1]] in USERTYPE_RECORDTYPE_MAP[current_user.user_type] and RECORD_TYPE_MAP[value[1]] in ACTIVITY_RECORDTYPE_MAP[SERIALIZATION_HELPER[form.activity.data]]:
                 valid_records[key] = value
         if not valid_records:
             return "You do not access to that data."
@@ -278,11 +277,11 @@ def get_data_request():
     except:
         return make_response("Invalid Signature", 401)
     
-    response = get_data(artefact, signature, SERIALIZATION_HELPER[content['activity']], int(content['hiu_id']), int(content['user_id']))
+    response = get_data(artefact, signature, content['activity'], int(content['hiu_id']), int(content['user_id']))
     return response
 
 def get_data(artefact, signature, activity, hiu_id, user_id, consent=None):
-    access_log = Access_Log(hiu_id = hiu_id, user_id = user_id, artefact = artefact.encode('utf-8'), signature = signature, time = datetime.now())
+    access_log = Access_Log(hiu_id = hiu_id, user_id = user_id, artefact = artefact.encode('utf-8'), signature = signature, activity = activity, time = datetime.now())
     artefact = json.loads(artefact)
 
     db.session.add(access_log)
@@ -297,7 +296,6 @@ def get_data(artefact, signature, activity, hiu_id, user_id, consent=None):
             
             data[record.id] = [record.data, INVERSE_RECORD_TYPE_MAP[record.record_type]]
         else:
-            print(consent.encounter_id)
             records = Record.query.filter_by(encounter_id = consent.encounter_id)
             if not records:
                 return data
@@ -323,3 +321,18 @@ def get_data(artefact, signature, activity, hiu_id, user_id, consent=None):
             data[record.id] = [record.data, INVERSE_RECORD_TYPE_MAP[record.record_type]]
     
     return make_response(json.dumps(data), 201)
+
+@app.route('/update_state', methods = ['GET', 'POST'])
+@login_required
+def update_state():
+    form = UpdateStateForm()
+    consents = Consent.query.filter(Consent.status.in_([StatusType.ACCEPTED, StatusType.CACHED]), Consent.state.in_(USERTYPE_STATE_MAP[current_user.user_type])).all()
+    form.consent_id.choices = [(i.id, str(i)) for i in consents]
+    if request.method == 'POST' and form.validate_on_submit():
+        consent = Consent.query.filter_by(id = int(form.consent_id.data)).first()
+        consent.state = STATE_MAP[form.state.data]
+        db.session.commit()
+        flash(f'State updated successfully.', 'success')
+        return redirect(url_for('home'))
+    else:
+        return render_template('update_state.html', title = 'Update State', form = form)

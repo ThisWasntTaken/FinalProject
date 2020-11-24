@@ -21,15 +21,6 @@ signature = pss.new(private_key).sign(h)
 signature = base64.b64encode(signature).decode('utf-8')
 j = json.dumps({'artefact' : artefact, 'signature' : signature})
 
-# public_key = private_key.publickey()
-# with open('./public_key.pem','wb') as f:
-#     f.write(public_key.exportKey('PEM'))
-#     from hiup import db
-#     from hiup.models import Patient
-#     patient = Patient(health_id = 1, name = "Patient1", email = "patient@patient.com", public_key = public_key.export_key())
-#     db.session.add(patient)
-#     db.session.commit()
-
 # with open('./public_key.pem','rb') as f:
 #     from hiup import db
 #     from hiup.models import Patient, Record
@@ -40,14 +31,14 @@ j = json.dumps({'artefact' : artefact, 'signature' : signature})
 #     encounter = Encounter(patient_id = 1)
 #     db.session.add(encounter)
 #     db.session.commit()
-#     record = Record(encounter_id = 1, patient_id = 1, data = "Patient1's Encounter 1, Record 1 Prescription at Hiu1", record_type = RecordType.PRESCRIPTION)
+#     record = Record(encounter_id = 1, patient_id = 1, data = "Patient1's Encounter 1, Record 1 Prescription at Hiu2", record_type = RecordType.PRESCRIPTION)
 #     db.session.add(record)
-#     record = Record(encounter_id = 1, patient_id = 1, data = "Patient1's Encounter 1, Record 2 MRI at Hiu1", record_type = RecordType.MRI)
+#     record = Record(encounter_id = 1, patient_id = 1, data = "Patient1's Encounter 1, Record 2 MRI at Hiu2", record_type = RecordType.MRI)
 #     db.session.add(record)
-#     record = Record(encounter_id = 1, patient_id = 1, data = "Patient1's Encounter 1, Record 3 Registration at Hiu1", record_type = RecordType.REGISTRATION)
+#     record = Record(encounter_id = 1, patient_id = 1, data = "Patient1's Encounter 1, Record 3 Registration at Hiu2", record_type = RecordType.REGISTRATION)
 #     db.session.add(record)
 #     db.session.commit()
-#     record = Record(patient_id = 1, data = "Patient1's Stand-alone, Record 4 Blood Test at Hiu1", record_type = RecordType.BLOOD_TEST)
+#     record = Record(encounter_id = 2, patient_id = 1, data = "Patient1's Encounter 2, Record 4 Blood Test at Hiu2", record_type = RecordType.BLOOD_TEST)
 #     db.session.add(record)
 #     db.session.commit()
 
