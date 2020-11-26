@@ -46,6 +46,7 @@ def consent_request():
         .. sourcecode:: http
 
             HTTP/1.1 201 Received Request
+            Content-Type: text/plain
         
         :statuscode 201: Received Request
         :statuscode 400: User not found
@@ -55,10 +56,10 @@ def consent_request():
     content = request.get_json()
     hiu = Hiu.query.filter_by(id = content['hiu_id']).first()
     if not hiu:
-        return make_response("", 400)
+        return make_response("HIU not found", 400)
     hip = Hip.query.filter_by(id = content['hip_id']).first()
     if not hip:
-        return make_response("", 400)
+        return make_response("HIP not found", 400)
     content['hiu_name'] = hiu.name
     content['hip_name'] = hip.name
     response = requests.post('http://127.0.0.1:5001/consent_request', json = content)
@@ -106,14 +107,16 @@ def consent_listener():
         .. sourcecode:: http
 
             HTTP/1.1 201 Received Request
+            Content-Type: text/plain
         
         :statuscode 201: Received Request
         :statuscode 400: HIU not found
+        :statuscode 401: Invalid Signature
     """
     content = request.get_json()
     hiu = Hiu.query.filter_by(id = content['hiu_id']).first()
     if not hiu:
-        return make_response("", 400)
+        return make_response("HIU not found", 400)
     response = requests.post(hiu.url + '/consent_listener', json = content)
     return make_response(response.text, response.status_code)
 
@@ -122,7 +125,7 @@ def get_data_request():
     """
     .. http:post:: /get_data_request/
 
-        Pass a consent status and object to a HIU.
+        Pass a data request to a HIP.
 
         **Example request**:
 
@@ -165,13 +168,35 @@ def get_data_request():
         .. sourcecode:: http
 
             HTTP/1.1 201 Received Request
+            Content-Type: application/json
+
+            {
+                "1": 
+                [
+                    "Patient1's Encounter 1, Record 1 Prescription at Hiu2",
+                    "Prescription"
+                ],
+                "2": 
+                [
+                    "Patient1's Encounter 1, Record 2 MRI at Hiu2",
+                    "MRI"
+                ],
+                "3": 
+                [
+                    "Patient1's Encounter 1, Record 3 Registration at Hiu2",
+                    "Registration"
+                ]
+            }
         
         :statuscode 201: Received Request
-        :statuscode 400: HIU not found
+        :statuscode 400: HIP not found
+        :statuscode 401: Invalid Signature
+        :statuscode 404: Record not found
+        :statuscode 404: Encounter not found
     """
     content = request.get_json()
     hip = Hip.query.filter_by(id = content['hip_id']).first()
     if not hip:
-        return make_response("", 400)
+        return make_response("HIP not found", 400)
     response = requests.post(hip.url + '/get_data_request', json = content)
     return make_response(response.text, response.status_code)

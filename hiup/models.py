@@ -121,7 +121,7 @@ class Request_Log(db.Model):
 
     :param int id: **primary key**
     :param int consent_id: **foreign key to Consent** ID of the consent used for data request
-    :param str activity: Activity that for data request
+    :param str activity: Activity that requires data
     :param DateTime time: Time of data request
     """
     id = db.Column(db.Integer, primary_key = True)
@@ -139,7 +139,7 @@ class Access_Log(db.Model):
     :param int user_id: **foreign key to User** ID of the user who requested data
     :param BLOB artefact: Consent artefact used to access data
     :param BLOB signature: Digital signature of the consent artefact for non-repudiability
-    :param str activity: Activity that for data access
+    :param str activity: Activity that requires data
     :param DateTime time: Time of data access
     """
     id = db.Column(db.Integer, primary_key = True)

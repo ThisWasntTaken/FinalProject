@@ -46,6 +46,7 @@
 <li><p><strong>user_id</strong> (<em>int</em>) – <strong>foreign key to User</strong> ID of the user who requested data</p></li>
 <li><p><strong>artefact</strong> (<em>BLOB</em>) – Consent artefact used to access data</p></li>
 <li><p><strong>signature</strong> (<em>BLOB</em>) – Digital signature of the consent artefact for non-repudiability</p></li>
+<li><p><strong>activity</strong> (<em>str</em>) – Activity that requires data</p></li>
 <li><p><strong>time</strong> (<em>DateTime</em>) – Time of data access</p></li>
 </ul>
 </dd>
@@ -130,6 +131,7 @@
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>id</strong> (<em>int</em>) – <strong>primary key</strong></p></li>
 <li><p><strong>consent_id</strong> (<em>int</em>) – <strong>foreign key to Consent</strong> ID of the consent used for data request</p></li>
+<li><p><strong>activity</strong> (<em>str</em>) – Activity that requires data</p></li>
 <li><p><strong>time</strong> (<em>DateTime</em>) – Time of data request</p></li>
 </ul>
 </dd>

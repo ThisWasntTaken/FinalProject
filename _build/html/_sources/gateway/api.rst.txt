@@ -2,4 +2,4 @@ API
 ---
 
 .. automodule:: gateway.routes
-   :members:
+   :members: consent_request, consent_listener, get_data_request

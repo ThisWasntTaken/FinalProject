@@ -8,17 +8,17 @@ def create_app(hiu_id, hip_id):
     app = Flask(__name__)
     app.config['HIU_ID'] = hiu_id
     app.config['HIP_ID'] = hip_id
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site' + str(hiu_id) + "_" + str(hip_id) + '.db'
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
     app.config['SECRET_KEY'] = 'c7e0792f8c63365236839f7205de037e'
     app.config['SESSION_COOKIE_NAME'] = "cookie_" + str(hiu_id) + "_" + str(hip_id)
     return app
 
-parser = ArgumentParser()
-parser.add_argument('-hiu_id')
-parser.add_argument('-hip_id')
-args = parser.parse_args()
-hiu_id = args.hiu_id
-hip_id = args.hip_id
+# parser = ArgumentParser()
+# parser.add_argument('-hiu_id')
+# parser.add_argument('-hip_id')
+# args = parser.parse_args()
+hiu_id = 1
+hip_id = 1
 app = create_app(hiu_id, hip_id)
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)

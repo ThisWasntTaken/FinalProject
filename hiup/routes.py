@@ -93,6 +93,9 @@ def register():
 @app.route('/consent_request', methods = ['GET', 'POST'])
 @login_required
 def consent_request():
+    """
+    Posts a consent request to the gateway's consent_request.
+    """
     form = ConsentForm()
     if request.method == 'POST' and form.validate_on_submit():
         patient = Patient.query.filter_by(health_id = form.health_id.data).first()
@@ -137,6 +140,51 @@ def consent_request():
 
 @app.route('/consent_listener', methods = ['POST'])
 def consent_listener():
+    """
+    .. http:post:: /consent_listener/
+
+        Listen to consent status.
+
+        **Example request**:
+
+        .. sourcecode:: http
+
+            POST /consent_listener/ HTTP/1.1
+            Host: http://127.0.0.1:6011/
+            Content-Type: application/json
+
+            {
+                "consent_id": 1,
+                "hiu_id": 1,
+                "artefact":
+                    {
+                        "hiu_id": 1,
+                        "hip_id": 1,
+                        "purpose": "Diagnosis",
+                        "time_from": "2020-11-21",
+                        "time_to": "2020-11-23",
+                        "encounter_id": 1
+                    },
+                "signature": ".....",
+                "accept": true
+            }
+        
+        :<json int consent_id: ID of the consent request at the HIU.
+        :<json int hiu_id: ID of the HIU.
+        :<json json artefact: Consent Artefact.
+        :<json string signature: Digital signature of the artefact.
+        :<json bool accept: Status of the consent request.
+
+        **Example response**:
+
+        .. sourcecode:: http
+
+            HTTP/1.1 201 Received Request
+            Content-Type: text/plain
+        
+        :statuscode 201: Received Request
+        :statuscode 401: Invalid Signature
+    """
     content = request.get_json()
     if content['accept']:
         consent = Consent.query.filter_by(id = content['consent_id']).first()
@@ -167,6 +215,9 @@ def consent_listener():
         return make_response("Received consent status", 201)
 
 def check_constraints(patient, artefact, signature, activity, user_type, state):
+    """
+    Check the constraints for data request. Returns True if authorized, else False.
+    """
     h = SHA256.new(artefact)
     verifier = pss.new(RSA.import_key(patient.public_key))
     try:
@@ -189,6 +240,9 @@ def check_on_duty():
 @app.route('/data_request', methods = ['GET', 'POST'])
 @login_required
 def data_request():
+    """
+    Posts a data request locally, or to the gateway's get_data_request for remote data access.
+    """
     form = DataRequestForm()
     consents = Consent.query.filter(Consent.status.in_([StatusType.ACCEPTED, StatusType.CACHED])).all()
     form.consent_id.choices = [(i.id, str(i)) for i in consents]
@@ -266,7 +320,79 @@ def data_request():
 
 @app.route('/get_data_request', methods = ['POST'])
 def get_data_request():
+    """
+    .. http:post:: /get_data_request/
+
+        Listen to data requests.
+
+        **Example request**:
+
+        .. sourcecode:: http
+
+            POST /get_data_request/ HTTP/1.1
+            Host: http://127.0.0.1:6011/
+            Content-Type: application/json
+
+            {
+                "artefact": 
+                    {
+                        "hiu_id": 1,
+                        "hip_id": 2,
+                        "purpose": "Surgery",
+                        "time_from": "2020-11-25",
+                        "time_to": "2020-11-27",
+                        "encounter_id": 1
+                    },
+                "signature": ".....",
+                "health_id": "1",
+                "hip_id": 2,
+                "activity": "Surgery1",
+                "hiu_id": 1,
+                "user_id": 1,
+                "user_type": "Doctor"
+            }
+        
+        :<json json artefact: Consent Artefact.
+        :<json string signature: Digital signature of the artefact.
+        :<json string health_id: Health ID of the user (patient).
+        :<json int hip_id: ID of the HIP.
+        :<json string activity: Activity that requires data.
+        :<json int hiu_id: ID of the HIU.
+        :<json int user_id: ID of the user who is requesting data.
+        :<json string user_type: UserType of the user who is requesting data.
+
+        **Example response**:
+
+        .. sourcecode:: http
+
+            HTTP/1.1 201 Received Request
+            Content-Type: application/json
+
+            {
+                "1": 
+                [
+                    "Patient1's Encounter 1, Record 1 Prescription at Hiu2",
+                    "Prescription"
+                ],
+                "2": 
+                [
+                    "Patient1's Encounter 1, Record 2 MRI at Hiu2",
+                    "MRI"
+                ],
+                "3": 
+                [
+                    "Patient1's Encounter 1, Record 3 Registration at Hiu2",
+                    "Registration"
+                ]
+            }
+        
+        :statuscode 201: Received Request
+        :statuscode 401: Invalid Signature
+        :statuscode 404: Record not found
+        :statuscode 404: Encounter not found
+    """
     content = request.get_json()
+    print(content)
     patient = Patient.query.filter_by(health_id = content['health_id']).first()
     signature = base64.b64decode(content['signature'].encode('utf-8'))
     artefact = content['artefact']
@@ -281,6 +407,9 @@ def get_data_request():
     return response
 
 def get_data(artefact, signature, activity, hiu_id, user_id, consent=None):
+    """
+    Accesses the database and fetches the required data.
+    """
     access_log = Access_Log(hiu_id = hiu_id, user_id = user_id, artefact = artefact.encode('utf-8'), signature = signature, activity = activity, time = datetime.now())
     artefact = json.loads(artefact)
 
@@ -325,6 +454,9 @@ def get_data(artefact, signature, activity, hiu_id, user_id, consent=None):
 @app.route('/update_state', methods = ['GET', 'POST'])
 @login_required
 def update_state():
+    """
+    Called when an appropriate user wants to update the state of an ongoing procedure.
+    """
     form = UpdateStateForm()
     consents = Consent.query.filter(Consent.status.in_([StatusType.ACCEPTED, StatusType.CACHED]), Consent.state.in_(USERTYPE_STATE_MAP[current_user.user_type])).all()
     form.consent_id.choices = [(i.id, str(i)) for i in consents]

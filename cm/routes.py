@@ -65,6 +65,7 @@ def get_consent_request():
         .. sourcecode:: http
 
             HTTP/1.1 201 Received Request
+            Content-Type: text/plain
         
         :statuscode 201: Received Request
         :statuscode 400: User not found
@@ -74,7 +75,7 @@ def get_consent_request():
     time_to = datetime.strptime(content['time_to'], '%Y-%m-%d').date()
     user = User.query.filter_by(health_id = content['health_id']).first()
     if not user:
-        return make_response("", 400)
+        return make_response("User not found", 400)
     
     r = Consent_Request(user_id = user.id,
                         request_id = content['request_id'],
@@ -92,7 +93,7 @@ def get_consent_request():
                     )
     db.session.add(r)
     db.session.commit()
-    return make_response("", 201)
+    return make_response("Received Request", 201)
 
 @app.route('/login', methods = ['GET', 'POST'])
 def login():
@@ -150,6 +151,10 @@ def view_approvals():
 
 @app.route("/request/<int:request_id>/accept", methods = ['GET', 'POST'])
 def accept_request(request_id):
+    """
+    Called when a user (patient) accepts a consent request. Creates a consent artefact and digitally signs it using the private key.
+    Posts to the gateway's consent_listener.
+    """
     form = PrivateKeyForm()
     if request.method == 'POST' and form.validate_on_submit():
         file_path = os.path.join(app.instance_path, '..', form.file.data.filename)
@@ -186,6 +191,9 @@ def accept_request(request_id):
 
 @app.route("/request/<int:request_id>/deny")
 def deny_request(request_id):
+    """
+    Called when a user (patient) denies or revokes a consent request. Posts to the gateway's consent_listener.
+    """
     req = Consent_Request.query.filter_by(id = request_id).first()
     data = {'consent_id' : req.request_id, 'hiu_id' : req.hiu_id, 'accept' : False}
     response = requests.post('http://127.0.0.1:5000/consent_listener', json = data)
