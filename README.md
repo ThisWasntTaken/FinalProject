@@ -30,3 +30,23 @@ INSERT INTO HI[X] VALUES (...)
 ```
 
 Once the applications are running, use the given URLs to access the sites.
+
+## Creating Documentation
+
+Sphinx is required. Clear existing documentation files by
+```
+make clean
+```
+
+Create HTML documentation by
+```
+make html
+```
+
+and latex files by
+```
+make latex
+```
+ The latex files can be compiled into a pdf.
+
+ View the HTML documentation by opening the index.html file in _build/html.
