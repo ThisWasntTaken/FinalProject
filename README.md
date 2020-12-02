@@ -1,4 +1,4 @@
-# Mapper - Topological Data Analysis
+# Privacy_Aware Activity-based Access Control Framework for EHR
 
 ## Installation
 
