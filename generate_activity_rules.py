@@ -1,3 +1,6 @@
+"""
+Generate the purpose to activity mapping.
+"""
 import pickle
 import inspect
 import enum

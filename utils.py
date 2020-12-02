@@ -1,5 +1,5 @@
 """
-Useful (and required) utilities like Enumerations and Maps.
+Useful (and required) utilities like Enumerations and Serialization Maps.
 """
 
 import enum
