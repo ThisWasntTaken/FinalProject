@@ -19,7 +19,7 @@ python run_hiup -hiu_id=[x] -hip_id=[y]
 
 where x and y are integers. Make sure that the hiu_id and hip_id are unique.
 
-Register the HIUs and HIPs to the gateway first. No UI exists for this, thus it requires direct access to the database:
+Register the HIUs and HIPs to the gateway first if they do not already exist. No UI exists for this, thus it requires direct access to the database:
 1. Open the gateway database by
 ```
 sqlite3 gateway/site.db
@@ -28,3 +28,5 @@ sqlite3 gateway/site.db
 ```
 INSERT INTO HI[X] VALUES (...)
 ```
+
+Once the applications are running, use the given URLs to access the sites.
