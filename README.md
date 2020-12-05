@@ -27,7 +27,9 @@ The default urls are:
 * Gateway : http://127.0.0.1:5000/
 * The HIU and HIP urls are created dynamically. The port is calculated as `10 * hiu_id + hip_id`. For example, for `hiu_id = 1` and `hip_id = 1` : http://127.0.0.1:6011/.
 
-<span style="color:red">Make sure that the `hiu_id` and `hip_id` are unique, and that `10 * hiu_id + hip_id` is unique.</span>
+```diff
+- Make sure that the `hiu_id` and `hip_id` are unique, and that `10 * hiu_id + hip_id` is unique.
+```
 
 ## Creating Documentation
 
