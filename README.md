@@ -17,7 +17,7 @@ python run_gateway.py
 python run_hiup -hiu_id=[x] -hip_id=[y]
 ```
 
-where x and y are integers. Make sure that the `hiu_id` and `hip_id` are unique.
+where x and y are integers.
 
 Register the HIUs and HIPs to the gateway first if they do not already exist.
 
@@ -26,6 +26,8 @@ The default urls are:
 * Consent Manager : http://127.0.0.1:5001/
 * Gateway : http://127.0.0.1:5000/
 * The HIU and HIP urls are created dynamically. The port is calculated as `10 * hiu_id + hip_id`. For example, for `hiu_id = 1` and `hip_id = 1` : http://127.0.0.1:6011/.
+
+<span style="color:red">Make sure that the `hiu_id` and `hip_id` are unique, and that `10 * hiu_id + hip_id` is unique.</span>
 
 ## Creating Documentation
 
