@@ -1,7 +1,37 @@
-from flask import request, make_response, jsonify
+'''
+API documentation for ther gateway
+'''
+
+from flask import request, make_response, render_template, flash
 from gateway.models import Hiu, Hip
 from gateway import app, db
+from gateway.forms import AddHIUForm, AddHIPForm
 import requests
+
+@app.route('/add_hiu', methods = ['GET', 'POST'])
+def add_hiu():
+    form = AddHIUForm()
+    if request.method == 'POST' and form.validate_on_submit():
+        hiu = Hiu(name = form.name.data, url = form.url.data)
+        db.session.add(hiu)
+        db.session.commit()
+        flash(f'Added', 'success')
+    return render_template('add_hiu.html', title = 'Add HIU', form = form)
+
+@app.route('/add_hip', methods = ['GET', 'POST'])
+def add_hip():
+    form = AddHIPForm()
+    if request.method == 'POST' and form.validate_on_submit():
+        hip = Hip(name = form.name.data, url = form.url.data)
+        db.session.add(hip)
+        db.session.commit()
+        flash(f'Added', 'success')
+    return render_template('add_hip.html', title = 'Add HIP', form = form)
+
+@app.route('/')
+@app.route('/index')
+def index():
+    return render_template('index.html', title = 'Gateway')
 
 @app.route('/consent_request', methods = ['POST'])
 def consent_request():

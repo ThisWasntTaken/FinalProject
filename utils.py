@@ -5,6 +5,9 @@ Useful (and required) utilities like Enumerations and Serialization Maps.
 import enum
 
 class UserType(enum.Enum):
+    '''
+    Types of users in the HIU
+    '''
     # ADMIN = "Admin"
     DOCTOR = "Doctor"
     NURSE = "Nurse"
@@ -29,6 +32,9 @@ class _Diagnosis(enum.Enum):
     DIAGNOSIS2 = "Diagnosis2"
 
 class PurposeType(enum.Enum):
+    '''
+    Umbrella Purpose are direct children of the root PurposeType. Leaves of the Purpose hierarchy are Activities.
+    '''
     SURGERY = _Surgery
     DIAGNOSIS = _Diagnosis
     REGISTRATION = "Registration"
@@ -36,6 +42,9 @@ class PurposeType(enum.Enum):
     TREATMENT = _Treatment
 
 class StatusType(enum.Enum):
+    '''
+    Status of a consent.
+    '''
     ACTIVE = "Active"
     ACCEPTED = "Accepted"
     DENIED = "Denied"
@@ -43,17 +52,25 @@ class StatusType(enum.Enum):
     CACHED = "Cached"
 
 class RecordType(enum.Enum):
+    '''
+    Type of the record at HIU[P].
+    '''
     REGISTRATION = "Registration"
     BLOOD_TEST = "BloodTest"
     PRESCRIPTION = "Prescription"
     MRI = "MRI"
 
 class State(enum.Enum):
+    '''
+    State of a procedure.
+    '''
     ADMISSION = "Admission"
     OBSERVATION = "Observation"
     SURGERY = "Surgery"
     TREATMENT = "Treatment"
     DISCHARGE = "Discharge"
+
+# Below are a list of utility maps for serialization and deserialization.
 
 PURPOSE_MAP = {
     "Diagnosis" : PurposeType.DIAGNOSIS,

@@ -19,17 +19,13 @@ python run_hiup -hiu_id=[x] -hip_id=[y]
 
 where x and y are integers. Make sure that the `hiu_id` and `hip_id` are unique.
 
-Register the HIUs and HIPs to the gateway first if they do not already exist. No UI exists for this, thus it requires direct access to the database:
-1. Open the gateway database by
-```
-sqlite3 gateway/site.db
-```
-2. Create entries into the HIU and HIP tables using SQL.
-```
-INSERT INTO HI[X] VALUES (...)
-```
+Register the HIUs and HIPs to the gateway first if they do not already exist.
 
 Once the applications are running, use the given URLs to access the sites.
+The default urls are:
+* Consent Manager : http://127.0.0.1:5001/
+* Gateway : http://127.0.0.1:5000/
+* The HIU and HIP urls are created dynamically. The port is calculated as `10 * hiu_id + hip_id`. For example, for `hiu_id = 1` and `hip_id = 1` : http://127.0.0.1:6011/.
 
 ## Creating Documentation
 
